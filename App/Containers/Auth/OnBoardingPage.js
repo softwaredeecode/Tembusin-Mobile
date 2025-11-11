@@ -106,7 +106,7 @@ const OnBoardingPage = () => {
           style={styles.registerButton}
           onPress={() => navigation.navigate('RegisterPage')}
         >
-          <Text style={styles.registerText}>Mulai Belajar</Text>
+          <Text style={styles.registerText}>Daftar Sekarang</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   loginText: {
-    fontFamily: Fonts.Medium,
+    fontFamily: Fonts.Bold,
     fontSize: 14,
     color: Colors.white,
   },
