@@ -9,7 +9,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 //screen
 import OnBoardingPage from '../Containers/Auth/OnBoardingPage';
 import LoginPage from '../Containers/Auth/LoginPage';
-import RegisterPage from '../Containers/Auth/RegisterPage';
+import RegisterChooseAccountPage from '../Containers/Auth/RegisterChooseAccountPage';
+import RegisterAccountPage from '../Containers/Auth/RegisterAccountPage';
+import RegisterCPNSPage from '../Containers/Auth/RegisterCPNSPage';
+import RegisterPTNPage from '../Containers/Auth/RegisterPTNPage';
+import RegisterCompleteDataPage from '../Containers/Auth/RegisterCompleteDataPage';
 
 enableScreens();
 
@@ -53,8 +57,28 @@ const AppNavigator = () => {
             options={horizontalAnimation}
           />
           <Stack.Screen
-            name="RegisterPage"
-            component={RegisterPage}
+            name="RegisterChooseAccountPage"
+            component={RegisterChooseAccountPage}
+            options={horizontalAnimation}
+          />
+          <Stack.Screen
+            name="RegisterAccountPage"
+            component={RegisterAccountPage}
+            options={horizontalAnimation}
+          />
+          <Stack.Screen
+            name="RegisterCompleteDataPage"
+            component={RegisterCompleteDataPage}
+            options={horizontalAnimation}
+          />
+          <Stack.Screen
+            name="RegisterCPNSPage"
+            component={RegisterCPNSPage}
+            options={horizontalAnimation}
+          />
+          <Stack.Screen
+            name="RegisterPTNPage"
+            component={RegisterPTNPage}
             options={horizontalAnimation}
           />
         </Stack.Navigator>

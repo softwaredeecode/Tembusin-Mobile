@@ -104,7 +104,7 @@ const OnBoardingPage = () => {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.registerButton}
-          onPress={() => navigation.navigate('RegisterPage')}
+          onPress={() => navigation.navigate('RegisterChooseAccountPage')}
         >
           <Text style={styles.registerText}>Daftar Sekarang</Text>
         </TouchableOpacity>
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   loginText: {
-    fontFamily: Fonts.Bold,
+    fontFamily: Fonts.Medium,
     fontSize: 14,
     color: Colors.white,
   },
