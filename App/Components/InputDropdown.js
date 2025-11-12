@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: Colors.neutral50,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 7,
     alignItems: 'center',
   },
   textValue: {
