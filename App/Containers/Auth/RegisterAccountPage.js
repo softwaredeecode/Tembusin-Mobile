@@ -17,9 +17,11 @@ import { Fonts } from '../../Theme/Fonts';
 //components
 import TextInputComponent from '../../Components/TextInputComponent';
 
-const LoginPage = () => {
+const RegisterAccountPage = props => {
+  const [fullname, setFullname] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const selectedAccountType = props?.route?.params?.selectedAccount;
   const navigation = useNavigation();
 
   return (
@@ -28,17 +30,26 @@ const LoginPage = () => {
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <Text style={styles.loginTitle}>Saatnya jadi generasi Juara!</Text>
+        <Text style={styles.registerTitle}>Mulai langkahmu jadi Juara!</Text>
         <Text style={styles.description}>
-          Waktunya kembali menembus targetmu dan melangkah lebih jauh.
+          Daftar sekarang dan mulai perjalanan menuju prestasi serta mimpi yang
+          ingin kamu tembus.
         </Text>
         <View style={styles.textInputContainer}>
           <TextInputComponent
-            title={'Email atau username'}
-            placeholder={'Contoh: john.doe@email.com'}
-            setValue={setEmail}
-            value={email}
+            title={'Nama lengkap'}
+            placeholder={'Contoh: John Doe'}
+            setValue={setFullname}
+            value={fullname}
           />
+          <View style={styles.divider}>
+            <TextInputComponent
+              title={'Email atau username'}
+              placeholder={'Contoh: john.doe@email.com'}
+              setValue={setEmail}
+              value={email}
+            />
+          </View>
           <View style={styles.divider}>
             <TextInputComponent
               title={'Password'}
@@ -55,42 +66,50 @@ const LoginPage = () => {
             </TouchableOpacity>
           </View>
         </View>
-        <TouchableOpacity style={styles.loginButton}>
-          <Text style={styles.loginText}>Login</Text>
+        <TouchableOpacity
+          style={styles.registerButton}
+          onPress={() =>
+            navigation.navigate('RegisterCompleteDataPage', {
+              selectedAccountType,
+              fullname,
+              email,
+              password,
+            })
+          }
+        >
+          <Text style={styles.registerText}>Daftar</Text>
         </TouchableOpacity>
         <View style={styles.orContainer}>
           <View style={styles.line} />
-          <Text style={styles.orText}>Atau masuk dengan</Text>
+          <Text style={styles.orText}>Atau daftar dengan</Text>
           <View style={styles.line} />
         </View>
-        <TouchableOpacity style={styles.loginWithButton}>
+        <TouchableOpacity style={styles.registerWithButton}>
           <Image
             source={require('../../Assets/Images/googleLogo.png')}
             style={styles.image}
             resizeMode="contain"
           />
-          <Text style={styles.loginWithText}>Login dengan Google</Text>
+          <Text style={styles.registerWithText}>Daftar dengan Google</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.loginWithButton}>
+        <TouchableOpacity style={styles.registerWithButton}>
           <Image
             source={require('../../Assets/Images/appleLogo.png')}
             style={styles.image}
             resizeMode="contain"
           />
-          <Text style={styles.loginWithText}>Login dengan Apple</Text>
+          <Text style={styles.registerWithText}>Daftar dengan Apple</Text>
         </TouchableOpacity>
         <View style={styles.noAccContainer}>
-          <Text>Belum punya akun?</Text>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('RegisterChooseAccountPage')}
-          >
-            <Text style={styles.registerButtonText}>Daftar Sekarang</Text>
+          <Text>Sudah punya akun?</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('LoginPage')}>
+            <Text style={styles.registerButtonText}>Masuk Sekarang</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
       <View style={styles.termsAndCondContainer}>
         <Text style={styles.termsAndCondText}>
-          Dengan log in, kamu menyetujui Kebijakan Privasi dan Syarat &
+          Dengan mendaftar, kamu menyetujui Kebijakan Privasi dan Syarat &
           Ketentuan Tembus.in termasuk Penggunaan Cookie.
         </Text>
       </View>
@@ -98,7 +117,7 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default RegisterAccountPage;
 
 const styles = StyleSheet.create({
   container: {
@@ -107,7 +126,7 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingHorizontal: 16,
   },
-  loginTitle: {
+  registerTitle: {
     fontSize: 32,
     fontFamily: Fonts.Medium,
     lineHeight: 40,
@@ -137,7 +156,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 18,
   },
-  loginButton: {
+  registerButton: {
     paddingVertical: 10,
     paddingHorizontal: 20,
     backgroundColor: Colors.product900,
@@ -146,7 +165,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 28,
   },
-  loginText: {
+  registerText: {
     fontFamily: Fonts.Medium,
     fontSize: 14,
     color: Colors.white,
@@ -167,7 +186,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.neutral500,
   },
-  loginWithButton: {
+  registerWithButton: {
     flexDirection: 'row',
     justifyContent: 'center',
     paddingVertical: 10,
@@ -179,7 +198,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.neutral200,
   },
-  loginWithText: {
+  registerWithText: {
     fontFamily: Fonts.Medium,
     fontSize: 14,
     color: Colors.neutral900,

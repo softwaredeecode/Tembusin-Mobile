@@ -1,12 +1,12 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 
-const RegisterPage = () => {
+const RegisterPTNPage = () => {
   return (
     <View>
-      <Text>INI REGISTER PAGE !!!</Text>
+      <Text>PTN PAGE</Text>
     </View>
   );
 };
 
-export default RegisterPage;
+export default RegisterPTNPage;

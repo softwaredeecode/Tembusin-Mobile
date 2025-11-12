@@ -6,7 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons'; // pastikan sudah install: npm i react-native-vector-icons
+import Icon from 'react-native-vector-icons/Ionicons';
 
 // theme
 import { Colors } from '../Theme/Colors';
@@ -16,8 +16,11 @@ const TextInputComponent = ({
   title,
   placeholder,
   inputType,
+  keyboardType,
   value,
   setValue,
+  disabled,
+  leftIcon,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -25,14 +28,30 @@ const TextInputComponent = ({
     <View>
       <Text style={styles.title}>{title}</Text>
 
-      <View style={styles.inputContainer}>
+      <View
+        style={[
+          styles.inputContainer,
+          disabled && styles.inputContainerDisabled,
+        ]}
+      >
+        {leftIcon && (
+          <View style={styles.leftIconContainer}>
+            <Icon
+              name={leftIcon}
+              size={20}
+              color={disabled ? Colors.neutral500 : Colors.neutral900}
+            />
+          </View>
+        )}
         <TextInput
+          editable={!disabled}
           placeholder={placeholder}
-          style={[styles.textInput, { flex: 1 }]}
+          style={[styles.textInput, disabled && styles.disabledTextInput]}
           secureTextEntry={inputType === 'password' && !showPassword}
           value={value}
           onChangeText={text => setValue(text)}
           placeholderTextColor={Colors.neutral400}
+          keyboardType={keyboardType}
         />
 
         {inputType === 'password' && (
@@ -68,10 +87,20 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.neutral50,
     paddingHorizontal: 12,
   },
+  leftIconContainer: {
+    marginRight: 8,
+  },
+  inputContainerDisabled: {
+    backgroundColor: Colors.neutral100,
+  },
   textInput: {
     paddingVertical: 8,
     fontFamily: Fonts.Regular,
     fontSize: 14,
     color: Colors.neutral900,
+    flex: 1,
+  },
+  disabledTextInput: {
+    color: Colors.neutral500,
   },
 });
