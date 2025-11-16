@@ -29,7 +29,7 @@ const LoginPage = () => {
 
   const handleLogin = async () => {
     const payload = {
-      identifier: email,
+      identifier: email.toLowerCase(),
       password: password,
     };
     await dispatch(ActionStudent.Login(payload));

@@ -31,7 +31,7 @@ const RegisterAccountPage = props => {
 
   const handleRegister = async () => {
     const payload = {
-      email: email,
+      email: email.toLowerCase(),
       field_type: selectedAccountType == 'ptn' ? 1 : 2,
       password: password,
       username: fullname,
