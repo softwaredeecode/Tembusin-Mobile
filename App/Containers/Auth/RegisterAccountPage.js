@@ -10,6 +10,10 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
+//redux
+import { useDispatch, useSelector } from 'react-redux';
+import { ActionStudent } from '../../Redux/Actions';
+
 //theme
 import { Colors } from '../../Theme/Colors';
 import { Fonts } from '../../Theme/Fonts';
@@ -18,11 +22,28 @@ import { Fonts } from '../../Theme/Fonts';
 import TextInputComponent from '../../Components/TextInputComponent';
 
 const RegisterAccountPage = props => {
+  const dispatch = useDispatch();
+  const navigation = useNavigation();
+  const selectedAccountType = props?.route?.params?.selectedAccount;
   const [fullname, setFullname] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const selectedAccountType = props?.route?.params?.selectedAccount;
-  const navigation = useNavigation();
+
+  const handleRegister = async () => {
+    const payload = {
+      email: email.toLowerCase(),
+      field_type: selectedAccountType == 'ptn' ? 1 : 2,
+      password: password,
+      username: fullname,
+    };
+    await dispatch(ActionStudent.PostRegister(payload));
+    // navigation.navigate('RegisterCompleteDataPage', {
+    //   selectedAccountType,
+    //   fullname,
+    //   email,
+    //   password,
+    // });
+  };
 
   return (
     <View style={styles.container}>
@@ -68,14 +89,9 @@ const RegisterAccountPage = props => {
         </View>
         <TouchableOpacity
           style={styles.registerButton}
-          onPress={() =>
-            navigation.navigate('RegisterCompleteDataPage', {
-              selectedAccountType,
-              fullname,
-              email,
-              password,
-            })
-          }
+          onPress={() => {
+            handleRegister();
+          }}
         >
           <Text style={styles.registerText}>Daftar</Text>
         </TouchableOpacity>

@@ -10,6 +10,10 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
+//redux
+import { useDispatch, useSelector } from 'react-redux';
+import { ActionStudent } from '../../Redux/Actions';
+
 //theme
 import { Colors } from '../../Theme/Colors';
 import { Fonts } from '../../Theme/Fonts';
@@ -18,9 +22,24 @@ import { Fonts } from '../../Theme/Fonts';
 import TextInputComponent from '../../Components/TextInputComponent';
 
 const LoginPage = () => {
+  const dispatch = useDispatch();
+  const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const navigation = useNavigation();
+
+  const handleLogin = async () => {
+    const payload = {
+      identifier: email.toLowerCase(),
+      password: password,
+    };
+    await dispatch(ActionStudent.Login(payload));
+    // navigation.navigate('RegisterCompleteDataPage', {
+    //   selectedAccountType,
+    //   fullname,
+    //   email,
+    //   password,
+    // });
+  };
 
   return (
     <View style={styles.container}>
@@ -55,7 +74,7 @@ const LoginPage = () => {
             </TouchableOpacity>
           </View>
         </View>
-        <TouchableOpacity style={styles.loginButton}>
+        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
           <Text style={styles.loginText}>Login</Text>
         </TouchableOpacity>
         <View style={styles.orContainer}>
