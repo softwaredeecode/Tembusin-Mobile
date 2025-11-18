@@ -11,6 +11,8 @@ export const Colors = {
   neutral900: '#111927',
   product50: '#EDF0FF',
   product200: '#B7C4FF',
+  product400: '#6885FF',
+  product500: '#3C66FF',
   product700: '#002DC4',
   product900: '#000066',
   success50: '#ECFDF5',
