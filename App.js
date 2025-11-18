@@ -20,9 +20,6 @@ const App = () => {
   // }, []);
 
   return (
-    // <Provider store={store}>
-    //   <AppNavigator />
-    // </Provider>
     <Provider store={store}>
       <SafeAreaProvider>
         <View style={{ flex: 1, backgroundColor: Colors.white }}>

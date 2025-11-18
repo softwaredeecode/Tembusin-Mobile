@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -23,6 +23,9 @@ import TextInputComponent from '../../Components/TextInputComponent';
 
 const LoginPage = () => {
   const dispatch = useDispatch();
+  const { loginResponse, loginSpinner, errorModal } = useSelector(
+    state => state.login,
+  );
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -33,13 +36,15 @@ const LoginPage = () => {
       password: password,
     };
     await dispatch(ActionStudent.Login(payload));
-    // navigation.navigate('RegisterCompleteDataPage', {
-    //   selectedAccountType,
-    //   fullname,
-    //   email,
-    //   password,
-    // });
   };
+
+  useEffect(() => {
+    if (loginResponse) {
+      if (loginResponse.status == 200) {
+        navigation.navigate('BottomTabNavigator');
+      }
+    }
+  }, [loginResponse]);
 
   return (
     <View style={styles.container}>

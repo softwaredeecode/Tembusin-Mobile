@@ -1,6 +1,7 @@
 export const Colors = {
   white: '#FFF',
   black: '#000',
+  yellow: '#FBB502',
   neutral50: '#F9FAFB',
   neutral100: '#F3F4F6',
   neutral200: '#E5E7EB',
@@ -10,8 +11,10 @@ export const Colors = {
   neutral900: '#111927',
   product50: '#EDF0FF',
   product200: '#B7C4FF',
+  product700: '#002DC4',
   product900: '#000066',
   success50: '#ECFDF5',
   success200: '#A7F3D0',
-  success500: '#10B981'
+  success500: '#10B981',
+  warning500: '#FDB602'
 };

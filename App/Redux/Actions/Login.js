@@ -1,8 +1,8 @@
 import * as ActionTypes from '../Constants/Types';
 import { BASE_URL, AUTH } from '../../Api/GlobalUrl';
 
-export const Login = (payload) => {
-  return async (dispatch) => {
+export const Login = payload => {
+  return async dispatch => {
     dispatch({ type: ActionTypes.LOGIN_REQUEST });
 
     const controller = new AbortController();
@@ -31,7 +31,12 @@ export const Login = (payload) => {
       clearTimeout(timeoutId);
 
       console.log('Status Code:', response.status);
-      const loginResponse = await response.json();
+      const body = await response.json();
+      const loginResponse = {
+        status: response.status,
+        ok: response.ok,
+        data: body,
+      };
       console.log('Response Body:', loginResponse);
       console.log('--- END REQUEST ---');
 
