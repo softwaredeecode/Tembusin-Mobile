@@ -277,8 +277,9 @@ const styles = StyleSheet.create({
     color: Colors.product700,
   },
   bodyContainer: {
-    paddingVertical: 12,
+    paddingTop: 12,
     paddingHorizontal: 16,
+    paddingBottom: 100
   },
   carouselContainer: {
     alignItems: 'center',
