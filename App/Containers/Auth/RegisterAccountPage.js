@@ -37,12 +37,12 @@ const RegisterAccountPage = props => {
       username: fullname,
     };
     await dispatch(ActionStudent.PostRegister(payload));
-    // navigation.navigate('RegisterCompleteDataPage', {
-    //   selectedAccountType,
-    //   fullname,
-    //   email,
-    //   password,
-    // });
+    navigation.navigate('RegisterCompleteDataPage', {
+      selectedAccountType,
+      fullname,
+      email,
+      password,
+    });
   };
 
   return (
