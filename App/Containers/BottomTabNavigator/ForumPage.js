@@ -360,6 +360,8 @@ const styles = StyleSheet.create({
     paddingTop: 6,
     paddingBottom: 12,
     paddingHorizontal: 16,
+    borderBottomColor: Colors.neutral200,
+    borderBottomWidth: 1,
   },
   switchChildContainer: {
     padding: 4,

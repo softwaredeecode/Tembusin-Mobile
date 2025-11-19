@@ -14,9 +14,13 @@ export const Colors = {
   product400: '#6885FF',
   product500: '#3C66FF',
   product700: '#002DC4',
+  product800: '#001596',
   product900: '#000066',
   success50: '#ECFDF5',
   success200: '#A7F3D0',
   success500: '#10B981',
-  warning500: '#FDB602'
+  warning500: '#FDB602',
+  danger50: '#FFF1F2',
+  danger200: '#FECDD3',
+  danger500: '#F43F5E'
 };
