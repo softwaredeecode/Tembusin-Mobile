@@ -9,3 +9,11 @@ export const getInitial = (name = '') => {
   }
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 };
+
+export const rupiahFormat = number => {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+  }).format(number);
+};
