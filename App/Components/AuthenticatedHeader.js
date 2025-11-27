@@ -15,7 +15,7 @@ const AuthenticatedHeader = ({ title, includeSearch = false }) => {
 
       {includeSearch && (
         <TouchableOpacity>
-          <Ionicons name={'search'} size={18} />
+          <Ionicons name={'search'} size={18} color={Colors.white} />
         </TouchableOpacity>
       )}
     </View>
@@ -26,7 +26,7 @@ export default AuthenticatedHeader;
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.product900,
     paddingVertical: 14,
     paddingHorizontal: 16,
     flexDirection: 'row',
@@ -39,6 +39,6 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.Medium,
     fontSize: 14,
     lineHeight: 20,
-    color: Colors.neutral900,
+    color: Colors.white,
   },
 });
