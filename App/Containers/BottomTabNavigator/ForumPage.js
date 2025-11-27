@@ -12,6 +12,10 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
 
+//redux
+import { useDispatch, useSelector } from 'react-redux';
+import { ActionStudent } from '../../Redux/Actions';
+
 //theme
 import { Colors } from '../../Theme/Colors';
 import { Fonts } from '../../Theme/Fonts';
@@ -25,8 +29,14 @@ import { getInitial } from '../../Utils/Helper';
 const SCREEN_WIDTH = Dimensions.get('screen').width;
 
 const ForumPage = () => {
+  const dispatch = useDispatch();
+  const { latestForumData, forumSpinner, errorModal } = useSelector(
+    state => state.forum,
+  );
+  const { loginResponse } = useSelector(state => state.login);
   const [activeTab, setActiveTab] = useState('terbaru');
   const [tabWidth, setTabWidth] = useState(0);
+  const [page, setPage] = useState(0);
 
   const slideAnim = useRef(new Animated.Value(0)).current;
 
@@ -124,12 +134,28 @@ const ForumPage = () => {
     },
   ];
 
+  console.log(loginResponse);
+
+  const getLatestForumData = async () => {
+    const payload = {
+      limit: 10,
+      offset: page,
+    };
+    await dispatch(ActionStudent.GetLatestForumData(payload, loginResponse.data.token));
+  };
+
+  console.log('LATEST FORUM DATA: ', latestForumData);
+
   useEffect(() => {
     Animated.timing(slideAnim, {
       toValue: activeTab === 'terbaru' ? 0 : 1,
       duration: 220,
       useNativeDriver: false,
     }).start();
+
+    if (activeTab === 'terbaru') {
+      getLatestForumData();
+    }
   }, [activeTab]);
 
   const translateX = slideAnim.interpolate({
@@ -175,23 +201,23 @@ const ForumPage = () => {
             </View>
             <View style={styles.userPostData}>
               <View style={styles.row}>
-                <Text style={styles.postedUsernameText}>{item.userName}</Text>
-                {item.status !== 'customer' && (
+                <Text style={styles.postedUsernameText}>{item?.userName}</Text>
+                {item?.status !== 'customer' && (
                   <View style={styles.iconNameContainer}>
-                    {item.status === 'member' && (
+                    {item?.status === 'member' && (
                       <MaterialCommunityIcons
                         name="crown-outline"
                         size={16}
                         color={Colors.product700}
                       />
                     )}
-                    {item.status === 'tutor' && (
+                    {item?.status === 'tutor' && (
                       <Text style={styles.tutorText}>Tutor</Text>
                     )}
                   </View>
                 )}
               </View>
-              <Text style={styles.postedDateText}>{item.datePosted}</Text>
+              <Text style={styles.postedDateText}>{item?.datePosted}</Text>
             </View>
             <TouchableOpacity style={styles.moreButton}>
               <MaterialCommunityIcons name={'dots-horizontal'} size={18} />
@@ -203,7 +229,7 @@ const ForumPage = () => {
               onTextLayout={onTextLayout}
               numberOfLines={numLines}
             >
-              {item.message}
+              {item?.content}
             </Text>
             {showMoreButton && (
               <TouchableOpacity
@@ -224,7 +250,7 @@ const ForumPage = () => {
               size={16}
               color={Colors.neutral500}
             />
-            <Text style={styles.statusCountText}>{item.commentTotal}</Text>
+            <Text style={styles.statusCountText}>{item?.comment_count}</Text>
           </View>
           <View style={[styles.row, { marginLeft: 20 }]}>
             <Ionicons
@@ -232,7 +258,7 @@ const ForumPage = () => {
               size={16}
               color={Colors.neutral500}
             />
-            <Text style={styles.statusCountText}>{item.likeTotal}</Text>
+            <Text style={styles.statusCountText}>{item?.like_count}</Text>
           </View>
           <View style={[styles.row, { marginLeft: 20, flex: 1 }]}>
             <Ionicons
@@ -240,7 +266,7 @@ const ForumPage = () => {
               size={16}
               color={Colors.neutral500}
             />
-            <Text style={styles.statusCountText}>{item.viewTotal}</Text>
+            <Text style={styles.statusCountText}>{item?.view_count}</Text>
           </View>
           <Feather name={'upload'} size={16} color={Colors.neutral500} />
         </View>
@@ -252,7 +278,7 @@ const ForumPage = () => {
     return (
       <View style={styles.forumContainer}>
         <FlatList
-          data={newForumData}
+          data={latestForumData.data}
           renderItem={({ item }) => {
             return <ForumCardComponent item={item} />;
           }}
