@@ -6,5 +6,6 @@ export const AUTH = {
 };
 
 export const FORUM = {
-  latest: '/posts/latest'
-}
+  latest: '/posts/latest',
+  trending: '/posts/trending',
+};

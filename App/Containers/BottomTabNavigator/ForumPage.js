@@ -24,127 +24,42 @@ import { Fonts } from '../../Theme/Fonts';
 import AuthenticatedHeader from '../../Components/AuthenticatedHeader';
 
 //helper
-import { getInitial } from '../../Utils/Helper';
+import { getInitial, formatDate } from '../../Utils/Helper';
 
 const SCREEN_WIDTH = Dimensions.get('screen').width;
 
 const ForumPage = () => {
   const dispatch = useDispatch();
-  const { latestForumData, forumSpinner, errorModal } = useSelector(
+  const { latestForumData, trendingForumData, forumSpinner, errorModal } = useSelector(
     state => state.forum,
   );
   const { loginResponse } = useSelector(state => state.login);
   const [activeTab, setActiveTab] = useState('terbaru');
   const [tabWidth, setTabWidth] = useState(0);
-  const [page, setPage] = useState(0);
+  const [pageLatestData, setPageLatestData] = useState(0);
+  const [pageTrendingData, setPageTrendingData] = useState(0);
 
   const slideAnim = useRef(new Animated.Value(0)).current;
-
-  const newForumData = [
-    {
-      id: 1,
-      userName: 'Dimas Permadi',
-      datePosted: '7 Nov 2025, 17:12',
-      message:
-        'Teman-teman, ada yang punya tips ngerjain soal analogi verbal di SNBT nggak? Kadang aku bingung nentuin hubungan katanya, terutama yang mirip-mirip kayak “pisau – memotong” vs “pena – menulis”.',
-      commentTotal: 4,
-      likeTotal: 6,
-      viewTotal: 10,
-      status: 'member',
-    },
-    {
-      id: 2,
-      userName: 'Andini',
-      datePosted: '7 Nov 2025, 17:00',
-      message:
-        'Halo semua Juara SNBT 👋\nKalau kalian masih sering keliru di soal penalaran kuantitatif, coba biasakan nulis langkah kerja tiap soal, bukan cuma hasil akhirnya. Dengan begitu, kalian bisa lebih cepat identifikasi kesalahan logika atau hitungan. Semangat terus, jangan lupa istirahat juga ya! 🌱',
-      commentTotal: 12,
-      likeTotal: 16,
-      viewTotal: 24,
-      status: 'tutor',
-    },
-    {
-      id: 3,
-      userName: 'Fajar Pradana',
-      datePosted: '7 Nov 2025, 16:45',
-      message:
-        'Mau cerita sedikit dan berbagi pengalaman pribadi ke temen temen. Baru seminggu serius belajar TKA, rasanya otak udah penuh banget. Tapi tiap kali inget tujuan pengen tembus kampus impian, semangatnya balik lagi 💪 Ada yang punya jadwal belajar efektif buat TKA?',
-      commentTotal: 14,
-      likeTotal: 18,
-      viewTotal: 26,
-      status: 'customer',
-    },
-    {
-      id: 4,
-      userName: 'Dwi Lestari',
-      datePosted: '7 Nov 2025, 16:30',
-      message:
-        'Mau nanya dong, kalau di soal TWK ada pertanyaan tentang “sistem pemerintahan Indonesia”, itu biasanya nyangkut ke topik apa aja ya? Aku takut kelewat pas review materi 😭',
-      commentTotal: 14,
-      likeTotal: 20,
-      viewTotal: 30,
-      status: 'member',
-    },
-  ];
-
-  const trendForumData = [
-    {
-      id: 1,
-      userName: 'Nabila Zahra',
-      datePosted: '7 Nov 2025, 12:12',
-      message:
-        'Dulu aku gagal SNBT 2024, tapi sekarang aku mulai lagi dari awal 💪\nBelajar tiap hari minimal 2 jam dan rutin ikut latihan di tembus.in. Progress-nya mulai keliatan banget!\nJangan takut gagal, yang penting terus belajar dan evaluasi diri. Kita semua bisa tembus impian masing-masing! 🌟',
-      commentTotal: 137,
-      likeTotal: 412,
-      viewTotal: 642,
-      status: 'member',
-    },
-    {
-      id: 2,
-      userName: 'Rendra',
-      datePosted: '7 Nov 2025, 12:02',
-      message:
-        'Buat teman-teman pejuang CPNS, ingat satu hal penting: strategi lebih penting daripada hafalan.\nGunakan waktu belajar 70% untuk latihan soal dan 30% untuk review kesalahan.\nBelajar cerdas lebih baik daripada belajar keras tanpa arah 💡',
-      commentTotal: 178,
-      likeTotal: 527,
-      viewTotal: 712,
-      status: 'tutor',
-    },
-    {
-      id: 3,
-      userName: 'Intan Prameswari',
-      datePosted: '7 Nov 2025, 11:25',
-      message:
-        'Baru aja selesai Try Out CPNS di tembus.in 🎯\nNilai TWK-ku naik 25 poin dari minggu lalu! Tipsku: fokus latihan waktu dan baca ulang pembahasan tiap kali salah.\nYang lain gimana hasilnya minggu ini?',
-      commentTotal: 121,
-      likeTotal: 345,
-      viewTotal: 456,
-      status: 'member',
-    },
-    {
-      id: 4,
-      userName: 'Aldi Saputra',
-      datePosted: '7 Nov 2025, 11:05',
-      message:
-        'Teman-teman, menurut kalian lebih efektif belajar konsep TKA dulu baru latihan soal, atau langsung latihan sambil baca pembahasan? Aku ngerasa kalau langsung latihan sering stuck, tapi kalau baca teori dulu malah kelamaan 😅',
-      commentTotal: 96,
-      likeTotal: 289,
-      viewTotal: 396,
-      status: 'member',
-    },
-  ];
-
-  console.log(loginResponse);
 
   const getLatestForumData = async () => {
     const payload = {
       limit: 10,
-      offset: page,
+      offset: pageLatestData,
     };
-    await dispatch(ActionStudent.GetLatestForumData(payload, loginResponse.data.token));
+    await dispatch(
+      ActionStudent.GetLatestForumData(payload, loginResponse.data.token),
+    );
   };
 
-  console.log('LATEST FORUM DATA: ', latestForumData);
+  const getTrendingForumData = async () => {
+    const payload = {
+      limit: 10,
+      offset: pageTrendingData,
+    };
+    await dispatch(
+      ActionStudent.GetTrendingForumData(payload, loginResponse.data.token),
+    );
+  };
 
   useEffect(() => {
     Animated.timing(slideAnim, {
@@ -155,6 +70,8 @@ const ForumPage = () => {
 
     if (activeTab === 'terbaru') {
       getLatestForumData();
+    } else {
+      getTrendingForumData();
     }
   }, [activeTab]);
 
@@ -196,13 +113,15 @@ const ForumPage = () => {
           <View style={styles.postHeader}>
             <View style={styles.profileInitialContainer}>
               <Text style={styles.initialText}>
-                {getInitial(item.userName)}
+                {getInitial(item?.user?.username)}
               </Text>
             </View>
             <View style={styles.userPostData}>
               <View style={styles.row}>
-                <Text style={styles.postedUsernameText}>{item?.userName}</Text>
-                {item?.status !== 'customer' && (
+                <Text style={styles.postedUsernameText}>
+                  {item?.user?.username}
+                </Text>
+                {/* {item?.status !== 'customer' && (
                   <View style={styles.iconNameContainer}>
                     {item?.status === 'member' && (
                       <MaterialCommunityIcons
@@ -215,9 +134,11 @@ const ForumPage = () => {
                       <Text style={styles.tutorText}>Tutor</Text>
                     )}
                   </View>
-                )}
+                )} */}
               </View>
-              <Text style={styles.postedDateText}>{item?.datePosted}</Text>
+              <Text style={styles.postedDateText}>
+                {formatDate(item?.updated_at)}
+              </Text>
             </View>
             <TouchableOpacity style={styles.moreButton}>
               <MaterialCommunityIcons name={'dots-horizontal'} size={18} />
@@ -292,7 +213,7 @@ const ForumPage = () => {
     return (
       <View style={styles.forumContainer}>
         <FlatList
-          data={trendForumData}
+          data={trendingForumData.data}
           renderItem={({ item }) => {
             return <ForumCardComponent item={item} />;
           }}
@@ -423,7 +344,7 @@ const styles = StyleSheet.create({
   },
   forumContainer: {
     paddingHorizontal: 16,
-    paddingBottom: 200,
+    paddingBottom: 180,
     paddingTop: 4,
   },
   cardContainer: {
