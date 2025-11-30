@@ -47,7 +47,7 @@ const AccountPage = () => {
 
   return (
     <View style={styles.container}>
-      <AuthenticatedHeader title={'Profil Saya'} />
+      <View style={styles.backgroundHeader}></View>
       <ScrollView style={styles.bodyContainer}>
         <View style={styles.profileInfoContainer}>
           <View style={styles.infoContainer}>
@@ -154,12 +154,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.neutral50,
   },
+  backgroundHeader: {
+    backgroundColor: Colors.product900,
+    height: 150,
+  },
   bodyContainer: {
-    paddingTop: 16,
+    marginTop: -134,
     paddingHorizontal: 16,
-    borderTopColor: Colors.neutral200,
-    borderTopWidth: 1,
-    marginBottom: 90,
+    marginBottom: 75,
   },
   infoContainer: {
     flexDirection: 'row',

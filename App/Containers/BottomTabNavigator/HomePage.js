@@ -76,16 +76,6 @@ const HomePage = () => {
   const viewConfigRef = useRef({ viewAreaCoveragePercentThreshold: 50 });
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      if (Platform.OS === 'android') {
-        StatusBar.setBackgroundColor(Colors.neutral50);
-      }
-      StatusBar.setBarStyle('dark-content');
-    });
-    return unsubscribe;
-  }, [navigation]);
-
-  useEffect(() => {
     const interval = setInterval(() => {
       let nextIndex = currentIndex + 1;
       if (nextIndex >= slides.length) {
@@ -99,6 +89,7 @@ const HomePage = () => {
 
   return (
     <ScrollView style={styles.container}>
+      <StatusBar barStyle="light-content" />
       <View style={styles.headerContainer}>
         <View style={styles.profileInitialContainer}>
           <Text style={styles.initialText}>
@@ -122,7 +113,11 @@ const HomePage = () => {
           <Text style={styles.titlesText}>Juara</Text>
         </View>
         <TouchableOpacity>
-          <Ionicons name={'notifications-outline'} size={20} />
+          <Ionicons
+            name={'notifications-outline'}
+            size={20}
+            color={Colors.white}
+          />
         </TouchableOpacity>
       </View>
       <View style={styles.bodyContainer}>
@@ -225,13 +220,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.neutral50,
   },
+  statusBarBackground: {
+    height: Platform.OS === 'ios' ? 44 : StatusBar.currentHeight,
+    backgroundColor: Colors.product900,
+  },
   headerContainer: {
     paddingVertical: 6,
     paddingLeft: 12,
     paddingRight: 16,
+    paddingBottom: 175,
     flexDirection: 'row',
     gap: 8,
     alignItems: 'center',
+    backgroundColor: Colors.product900,
   },
   profileInitialContainer: {
     width: 32,
@@ -268,18 +269,18 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.SemiBold,
     fontSize: 14,
     lineHeight: 18,
-    color: Colors.neutral900,
+    color: Colors.white,
   },
   titlesText: {
     fontFamily: Fonts.Regular,
     fontSize: 12,
     lineHeight: 18,
-    color: Colors.product700,
+    color: Colors.product500,
   },
   bodyContainer: {
-    paddingTop: 12,
+    marginTop: -157,
     paddingHorizontal: 16,
-    paddingBottom: 100
+    paddingBottom: 100,
   },
   carouselContainer: {
     alignItems: 'center',
@@ -339,8 +340,8 @@ const styles = StyleSheet.create({
   leaderboardContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: 12
-  }
+    marginVertical: 12,
+  },
 });
 
 export default HomePage;

@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.neutral50,
   },
   switchContainer: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.product900,
     paddingTop: 6,
     paddingBottom: 12,
     paddingHorizontal: 16,
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
   switchChildContainer: {
     padding: 4,
     borderRadius: 6,
-    backgroundColor: Colors.product900,
+    backgroundColor: Colors.product950,
     flexDirection: 'row',
     alignItems: 'center',
     position: 'relative',

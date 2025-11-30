@@ -386,23 +386,22 @@ const styles = StyleSheet.create({
   bodyContainer: {
     paddingTop: 16,
     paddingHorizontal: 16,
-    borderTopColor: Colors.neutral200,
-    borderTopWidth: 1,
+    backgroundColor: Colors.product900,
   },
   balanceContainer: {
     borderRadius: 6,
-    backgroundColor: Colors.product900,
+    backgroundColor: Colors.white,
   },
   tokenInformationContainer: {
     padding: 12,
-    borderBottomColor: Colors.product800,
+    borderBottomColor: Colors.neutral200,
     borderBottomWidth: 1,
   },
   tokenText: {
     fontFamily: Fonts.Medium,
     fontSize: 12,
     lineHeight: 18,
-    color: Colors.white,
+    color: Colors.neutral500,
     marginBottom: 2,
   },
   row: {
@@ -413,7 +412,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.SemiBold,
     fontSize: 20,
     lineHeight: 24,
-    color: Colors.white,
+    color: Colors.neutral900,
     marginLeft: 6,
   },
   addButtonContainer: {
@@ -438,7 +437,7 @@ const styles = StyleSheet.create({
   champButtonContainer: {
     paddingVertical: 4,
     paddingHorizontal: 8,
-    borderRadius: 4,
+    borderRadius: 6,
     backgroundColor: Colors.product50,
     borderWidth: 1,
     borderColor: Colors.product200,
@@ -454,7 +453,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.Regular,
     fontSize: 12,
     lineHeight: 18,
-    color: Colors.white,
+    color: Colors.neutral500,
   },
   activeProductText: {
     fontFamily: Fonts.Regular,
@@ -471,15 +470,14 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   switchContainer: {
-    paddingTop: 24,
+    paddingVertical: 12,
     paddingHorizontal: 16,
+    backgroundColor: Colors.product900
   },
   switchChildContainer: {
     padding: 4,
     borderRadius: 6,
-    backgroundColor: Colors.neutral100,
-    borderColor: Colors.neutral200,
-    borderWidth: 1,
+    backgroundColor: Colors.product950,
     flexDirection: 'row',
     alignItems: 'center',
     position: 'relative',
@@ -491,7 +489,7 @@ const styles = StyleSheet.create({
     top: 4,
     bottom: 4,
     backgroundColor: Colors.white,
-    borderRadius: 4,
+    borderRadius: 6,
     borderWidth: 1,
     borderColor: Colors.neutral200,
   },
@@ -503,7 +501,7 @@ const styles = StyleSheet.create({
   inActiveSwitchText: {
     fontFamily: Fonts.Medium,
     fontSize: 14,
-    color: Colors.neutral500,
+    color: Colors.product500,
   },
   activeSwitchText: {
     fontFamily: Fonts.Medium,
