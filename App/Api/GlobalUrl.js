@@ -4,3 +4,8 @@ export const AUTH = {
   register: '/register',
   login: '/login',
 };
+
+export const FORUM = {
+  latest: '/posts/latest',
+  trending: '/posts/trending',
+};
