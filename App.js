@@ -1,33 +1,31 @@
-import React, { useEffect } from 'react';
-// import SplashScreen from 'react-native-splash-screen';
+import 'react-native-gesture-handler';
+import 'react-native-reanimated';
+
+import React from 'react';
 import AppNavigator from './App/Router/AppNavigator';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { View, StatusBar } from 'react-native';
-import { Colors } from './App/Theme/Colors';
-import { Provider, useDispatch } from 'react-redux';
+import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import rootReducer from './App/Redux/Reducers/index.js';
-// import { loadFavorites } from './App/Redux/Reducers/Favorites.js';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Colors } from './App/Theme/Colors';
 
 const store = configureStore({
   reducer: rootReducer,
 });
 
 const App = () => {
-  // useEffect(() => {
-  //   SplashScreen.hide();
-  //   store.dispatch(loadFavorites());
-  // }, []);
-
   return (
-    <Provider store={store}>
-      <SafeAreaProvider>
-        <View style={{ flex: 1, backgroundColor: Colors.white }}>
-          <StatusBar barStyle="dark-content" backgroundColor={Colors.white} />
-          <AppNavigator />
-        </View>
-      </SafeAreaProvider>
-    </Provider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <BottomSheetModalProvider>
+        <Provider store={store}>
+          <SafeAreaProvider>
+            <AppNavigator />
+          </SafeAreaProvider>
+        </Provider>
+      </BottomSheetModalProvider>
+    </GestureHandlerRootView>
   );
 };
 

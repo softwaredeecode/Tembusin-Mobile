@@ -49,21 +49,25 @@ const HomePage = () => {
       id: '1',
       menu_name: 'Materi',
       menu_icon: 'book-open-blank-variant',
+      screen_name: 'MaterialPage',
     },
     {
       id: '2',
       menu_name: 'Latihan',
       menu_icon: 'file-document-edit-outline',
+      screen_name: 'LatihanPage',
     },
     {
       id: '3',
       menu_name: 'Try Out',
       menu_icon: 'clipboard-check-outline',
+      screen_name: 'TryOutPage',
     },
     {
       id: '4',
       menu_name: 'Live Class',
       menu_icon: 'video-outline',
+      screen_name: 'LiveClassPage',
     },
   ];
 
@@ -88,7 +92,7 @@ const HomePage = () => {
   }, [currentIndex]);
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} bounces={false} overScrollMode="never">
       <StatusBar barStyle="light-content" />
       <View style={styles.headerContainer}>
         <View style={styles.profileInitialContainer}>
@@ -162,7 +166,7 @@ const HomePage = () => {
             contentContainerStyle={styles.menuListContainer}
             showsHorizontalScrollIndicator={false}
             renderItem={({ item }) => (
-              <TouchableOpacity style={styles.menuItem}>
+              <TouchableOpacity onPress={() => navigation.navigate(item.screen_name)} style={styles.menuItem}>
                 <View style={styles.menuItemContainer}>
                   <MaterialCommunityIcons
                     name={item.menu_icon}
@@ -186,7 +190,7 @@ const HomePage = () => {
             contentContainerStyle={styles.menuListContainer}
             showsHorizontalScrollIndicator={false}
             renderItem={({ item }) => (
-              <TouchableOpacity style={styles.menuItem}>
+              <TouchableOpacity onPress={() => navigation.navigate(item.screen_name)} style={styles.menuItem}>
                 <View style={styles.menuItemContainer}>
                   <MaterialCommunityIcons
                     name={item.menu_icon}
