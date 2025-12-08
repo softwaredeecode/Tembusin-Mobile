@@ -20,6 +20,8 @@ export const Colors = {
   success50: '#ECFDF5',
   success200: '#A7F3D0',
   success500: '#10B981',
+  warning50: '#FFFDEA',
+  warning200: '#FFF386',
   warning500: '#FDB602',
   danger50: '#FFF1F2',
   danger200: '#FECDD3',

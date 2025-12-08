@@ -2,15 +2,12 @@ import React from 'react';
 import { View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-//redux
 import { useSelector } from 'react-redux';
 
-//theme
 import { Colors } from '../Theme/Colors';
 
 import AuthNavigator from './AuthNavigator';
-import MainNavigator from './MainNavigator';
+import MainStackNavigator from './MainStackNavigator';
 
 const RootNavigator = () => {
   const insets = useSafeAreaInsets();
@@ -18,17 +15,27 @@ const RootNavigator = () => {
 
   const isLoggedIn = !!loginResponse?.data?.token;
 
+  const [currentRoute, setCurrentRoute] = React.useState(null);
+
+  const isInMainTabs =
+    isLoggedIn && currentRoute === 'MainTabs';
+
   return (
     <View
       style={{
         flex: 1,
-        backgroundColor: isLoggedIn ? Colors.product900 : Colors.neutral50,
+        backgroundColor: isInMainTabs ? Colors.product900 : Colors.white,
         paddingTop: insets.top,
         paddingBottom: isLoggedIn ? 0 : insets.bottom,
       }}
     >
-      <NavigationContainer>
-        {isLoggedIn ? <MainNavigator /> : <AuthNavigator />}
+      <NavigationContainer
+        onStateChange={state => {
+          const route = state.routes[state.index];
+          setCurrentRoute(route.name);
+        }}
+      >
+        {isLoggedIn ? <MainStackNavigator /> : <AuthNavigator />}
       </NavigationContainer>
     </View>
   );
