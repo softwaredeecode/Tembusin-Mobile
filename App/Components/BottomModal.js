@@ -16,7 +16,7 @@ import { Fonts } from '../Theme/Fonts';
 
 const screenHeight = Dimensions.get('window').height;
 
-const BottomModal = ({ visible, onClose, title, children }) => {
+const BottomModal = ({ visible, onClose, title, children, enableScroll = true }) => {
   return (
     <Modal
       visible={visible}
@@ -40,6 +40,7 @@ const BottomModal = ({ visible, onClose, title, children }) => {
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
+            scrollEnabled={enableScroll}
           >
             {children}
           </ScrollView>
