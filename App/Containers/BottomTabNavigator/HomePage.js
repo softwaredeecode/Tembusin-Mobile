@@ -55,7 +55,7 @@ const HomePage = () => {
       id: '2',
       menu_name: 'Latihan',
       menu_icon: 'file-document-edit-outline',
-      screen_name: 'LatihanPage',
+      screen_name: 'ExercisesPage',
     },
     {
       id: '3',
