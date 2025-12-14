@@ -10,6 +10,11 @@ import MyExercisesPage from '../Containers/Home/Exercises/MyExercisesPage';
 import AllExercisesPage from '../Containers/Home/Exercises/AllExercisesPage';
 import DetailPurchasesExercises from '../Containers/Home/Exercises/DetailPurchaseExercises';
 import DetailStartExercises from '../Containers/Home/Exercises/DetailStartExercises';
+import TryOutPage from '../Containers/Home/TryOut/TryOutPage';
+import AllTryOutPage from '../Containers/Home/TryOut/AllTryOutPage';
+import MyTryOutPage from '../Containers/Home/TryOut/MyTryOutPage';
+import DetailPurchaseTryOut from '../Containers/Home/TryOut/DetailPurchaseTryOut';
+import DetailStartTryOut from '../Containers/Home/TryOut/DetailStartTryOut';
 
 const Stack = createStackNavigator();
 
@@ -25,6 +30,11 @@ const MainStackNavigator = () => {
       <Stack.Screen name="AllExercisesPage" component={AllExercisesPage} />
       <Stack.Screen name="DetailPurchasesExercises" component={DetailPurchasesExercises} />
       <Stack.Screen name="DetailStartExercises" component={DetailStartExercises} />
+      <Stack.Screen name="TryOutPage" component={TryOutPage} />
+      <Stack.Screen name="AllTryOutPage" component={AllTryOutPage} />
+      <Stack.Screen name="MyTryOutPage" component={MyTryOutPage} />
+      <Stack.Screen name="DetailPurchaseTryOut" component={DetailPurchaseTryOut} />
+      <Stack.Screen name="DetailStartTryOut" component={DetailStartTryOut} />
     </Stack.Navigator>
   );
 };

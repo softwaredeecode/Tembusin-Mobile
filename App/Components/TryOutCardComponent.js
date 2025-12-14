@@ -18,7 +18,7 @@ import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { Colors } from '../Theme/Colors';
 import { Fonts } from '../Theme/Fonts';
 
-const ExercisesCardComponents = ({ item, onPress }) => {
+const TryOutCardComponents = ({ item, onPress }) => {
   const { width } = useWindowDimensions();
   const buttonText =
     item.status == 'readyToStart'
@@ -26,8 +26,6 @@ const ExercisesCardComponents = ({ item, onPress }) => {
       : item.status == 'notReadyToStart'
       ? 'Lihat Detail'
       : item.status == 'done'
-      ? 'Mulai Ulang'
-      : item.status == 'expired'
       ? 'Review'
       : 'Beli';
 
@@ -108,16 +106,6 @@ const ExercisesCardComponents = ({ item, onPress }) => {
             />
           </View>
         )}
-        {item.chance && (
-          <View style={styles.materialDescContainer}>
-            <View style={styles.dateIconContainer}>
-              <FontAwesome name={'money'} size={10} color={Colors.neutral500} />
-            </View>
-            <Text style={styles.materialDateText}>
-              {`Kesempatan: ${item.chance}`}
-            </Text>
-          </View>
-        )}
         {item.seperateBuy && item.buyStatus !== 'purchased' && (
           <View style={styles.seperateBuyContainer}>
             <Ionicons name={'checkmark'} size={14} color={Colors.success500} />
@@ -181,7 +169,7 @@ const ExercisesCardComponents = ({ item, onPress }) => {
   );
 };
 
-export default ExercisesCardComponents;
+export default TryOutCardComponents;
 
 const styles = StyleSheet.create({
   materialCardContainer: {
