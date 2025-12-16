@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,9 +8,7 @@ import {
 } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
-//redux
-import { useSelector } from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 //theme
 import { Colors } from '../../Theme/Colors';
@@ -23,23 +21,29 @@ import AuthenticatedHeader from '../../Components/AuthenticatedHeader';
 import { getInitial } from '../../Utils/Helper';
 
 const AccountPage = () => {
-  const { loginResponse } = useSelector(state => state.login);
+
+  const [userData, setUserData] = useState(null);
+
+  useEffect(() => {
+    const getUserData = async () => {
+      const storedData = await AsyncStorage.getItem('user_data');
+
+      if (storedData) {
+        const parsedData = JSON.parse(storedData);
+        setUserData(parsedData);
+      }
+    };
+
+    getUserData();
+  }, []);
 
   const MenuItem = ({ icon, label, onPress }) => (
     <TouchableOpacity style={styles.menuItem}>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <Ionicons
-          name={icon}
-          size={20}
-          color={Colors.neutral900}
-        />
+        <Ionicons name={icon} size={20} color={Colors.neutral900} />
         <Text style={styles.menuLabel}>{label}</Text>
       </View>
-      <Ionicons
-        name="chevron-forward"
-        size={20}
-        color={Colors.neutral500}
-      />
+      <Ionicons name="chevron-forward" size={20} color={Colors.neutral500} />
     </TouchableOpacity>
   );
 
@@ -53,13 +57,13 @@ const AccountPage = () => {
           <View style={styles.infoContainer}>
             <View style={styles.profileInitialContainer}>
               <Text style={styles.initialText}>
-                {getInitial(loginResponse.data.user.username)}
+                {getInitial(userData?.username)}
               </Text>
             </View>
             <View>
               <View style={styles.row}>
                 <Text style={styles.profileNameText}>
-                  {loginResponse.data.user.username}
+                  {userData?.username}
                 </Text>
                 <View style={styles.iconNameContainer}>
                   <MaterialCommunityIcons
@@ -70,7 +74,7 @@ const AccountPage = () => {
                 </View>
               </View>
               <Text style={styles.emailText}>
-                {loginResponse.data.user.email}
+                {userData?.email}
               </Text>
             </View>
           </View>

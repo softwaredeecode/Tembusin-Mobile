@@ -1,24 +1,36 @@
-import React from 'react';
-import { View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { Colors } from '../Theme/Colors';
-
 import AuthNavigator from './AuthNavigator';
 import MainStackNavigator from './MainStackNavigator';
 
 const RootNavigator = () => {
   const insets = useSafeAreaInsets();
-  const { loginResponse } = useSelector(state => state.login);
 
-  const isLoggedIn = !!loginResponse?.data?.token;
+  const [isLoggedIn, setIsLoggedIn] = useState(null);
+  const [currentRoute, setCurrentRoute] = useState(null);
 
-  const [currentRoute, setCurrentRoute] = React.useState(null);
+  useEffect(() => {
+    const fetchToken = async () => {
+      const token = await AsyncStorage.getItem('auth_token');
+      setIsLoggedIn(!!token);
+    };
+    fetchToken();
+  }, []);
 
-  const isInMainTabs =
-    isLoggedIn && currentRoute === 'MainTabs';
+  if (isLoggedIn === null) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={Colors.product900} />
+      </View>
+    );
+  }
+
+  const isInMainTabs = isLoggedIn && currentRoute === 'MainTabs';
 
   return (
     <View

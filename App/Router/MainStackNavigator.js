@@ -15,6 +15,9 @@ import AllTryOutPage from '../Containers/Home/TryOut/AllTryOutPage';
 import MyTryOutPage from '../Containers/Home/TryOut/MyTryOutPage';
 import DetailPurchaseTryOut from '../Containers/Home/TryOut/DetailPurchaseTryOut';
 import DetailStartTryOut from '../Containers/Home/TryOut/DetailStartTryOut';
+import ForumDetailPage from '../Containers/Forum/ForumDetailPage';
+import AddCommentPage from '../Containers/Forum/AddCommentPage';
+import AddPostPage from '../Containers/Forum/AddPostPage';
 
 const Stack = createStackNavigator();
 
@@ -35,6 +38,9 @@ const MainStackNavigator = () => {
       <Stack.Screen name="MyTryOutPage" component={MyTryOutPage} />
       <Stack.Screen name="DetailPurchaseTryOut" component={DetailPurchaseTryOut} />
       <Stack.Screen name="DetailStartTryOut" component={DetailStartTryOut} />
+      <Stack.Screen name="ForumDetailPage" component={ForumDetailPage} />
+      <Stack.Screen name="AddCommentPage" component={AddCommentPage} />
+      <Stack.Screen name="AddPostPage" component={AddPostPage} />
     </Stack.Navigator>
   );
 };

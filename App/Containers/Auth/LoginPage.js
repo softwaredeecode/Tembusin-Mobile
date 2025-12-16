@@ -9,6 +9,7 @@ import {
   Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 //redux
 import { useDispatch, useSelector } from 'react-redux';
@@ -39,11 +40,20 @@ const LoginPage = () => {
   };
 
   useEffect(() => {
-    if (loginResponse) {
-      if (loginResponse.status == 200) {
-        navigation.navigate('BottomTabNavigator');
+    const saveToken = async () => {
+      if (loginResponse && loginResponse.status === 200) {
+        try {
+          await AsyncStorage.multiSet([
+            ['auth_token', loginResponse.data.token],
+            ['user_data', JSON.stringify(loginResponse.data.user)],
+          ]);
+        } catch (error) {
+          console.log('Failed to save token', error);
+        }
       }
-    }
+    };
+
+    saveToken();
   }, [loginResponse]);
 
   return (

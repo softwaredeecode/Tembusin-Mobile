@@ -14,6 +14,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 //redux
 import { useSelector } from 'react-redux';
@@ -29,7 +30,6 @@ const { width } = Dimensions.get('window');
 
 const HomePage = () => {
   const navigation = useNavigation();
-  const { loginResponse } = useSelector(state => state.login);
   const slides = [
     {
       key: '1',
@@ -72,6 +72,7 @@ const HomePage = () => {
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [userData, setUserData] = useState(null);
 
   const flatListRef = useRef(null);
   const onViewRef = useRef(({ viewableItems }) => {
@@ -91,20 +92,31 @@ const HomePage = () => {
     return () => clearInterval(interval);
   }, [currentIndex]);
 
+  useEffect(() => {
+    const getUserData = async () => {
+      const storedData = await AsyncStorage.getItem('user_data');
+
+      if (storedData) {
+        const parsedData = JSON.parse(storedData);
+        setUserData(parsedData);
+      }
+    };
+
+    getUserData();
+  }, []);
+
   return (
     <ScrollView style={styles.container} bounces={false} overScrollMode="never">
       <StatusBar barStyle="light-content" />
       <View style={styles.headerContainer}>
         <View style={styles.profileInitialContainer}>
           <Text style={styles.initialText}>
-            {getInitial(loginResponse.data.user.username)}
+            {getInitial(userData?.username)}
           </Text>
         </View>
         <View style={styles.userDataContainer}>
           <View style={styles.row}>
-            <Text style={styles.profileNameText}>
-              {loginResponse.data.user.username}
-            </Text>
+            <Text style={styles.profileNameText}>{userData?.username}</Text>
             <View style={styles.iconNameContainer}>
               <MaterialCommunityIcons
                 name="crown-outline"
@@ -166,7 +178,10 @@ const HomePage = () => {
             contentContainerStyle={styles.menuListContainer}
             showsHorizontalScrollIndicator={false}
             renderItem={({ item }) => (
-              <TouchableOpacity onPress={() => navigation.navigate(item.screen_name)} style={styles.menuItem}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate(item.screen_name)}
+                style={styles.menuItem}
+              >
                 <View style={styles.menuItemContainer}>
                   <MaterialCommunityIcons
                     name={item.menu_icon}
@@ -190,7 +205,10 @@ const HomePage = () => {
             contentContainerStyle={styles.menuListContainer}
             showsHorizontalScrollIndicator={false}
             renderItem={({ item }) => (
-              <TouchableOpacity onPress={() => navigation.navigate(item.screen_name)} style={styles.menuItem}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate(item.screen_name)}
+                style={styles.menuItem}
+              >
                 <View style={styles.menuItemContainer}>
                   <MaterialCommunityIcons
                     name={item.menu_icon}
