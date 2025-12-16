@@ -1,4 +1,4 @@
-export const BASE_URL = 'http://72.61.140.56/api';
+export const BASE_URL = 'https://be-tembusin.deecodesoftware.com/api';
 
 export const AUTH = {
   register: '/register',
@@ -8,4 +8,7 @@ export const AUTH = {
 export const FORUM = {
   latest: '/posts/latest',
   trending: '/posts/trending',
+  comments: (id) => `/posts/${id}/comments`,
+  addComment: '/comments',
+  addPost: '/posts'
 };

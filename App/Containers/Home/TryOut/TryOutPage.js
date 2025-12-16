@@ -79,7 +79,7 @@ const TryOutPage = () => {
         backgroundColor={Colors.white}
         barStyle="dark-content"
       />
-      <MainHeader title={'Latihan Soal'} />
+      <MainHeader title={'Try Out'} />
       <ScrollView style={styles.bodyContainer}>
         <View style={styles.lastOpenContainer}>
           <Text style={styles.titleText}>Akan Datang</Text>

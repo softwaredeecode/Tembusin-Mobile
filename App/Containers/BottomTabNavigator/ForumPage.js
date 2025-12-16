@@ -11,6 +11,9 @@ import {
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
+import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 
 //redux
 import { useDispatch, useSelector } from 'react-redux';
@@ -30,10 +33,9 @@ const SCREEN_WIDTH = Dimensions.get('screen').width;
 
 const ForumPage = () => {
   const dispatch = useDispatch();
-  const { latestForumData, trendingForumData, forumSpinner, errorModal } = useSelector(
-    state => state.forum,
-  );
-  const { loginResponse } = useSelector(state => state.login);
+  const navigation = useNavigation();
+  const { latestForumData, trendingForumData, forumSpinner, errorModal } =
+    useSelector(state => state.forum);
   const [activeTab, setActiveTab] = useState('terbaru');
   const [tabWidth, setTabWidth] = useState(0);
   const [pageLatestData, setPageLatestData] = useState(0);
@@ -42,24 +44,38 @@ const ForumPage = () => {
   const slideAnim = useRef(new Animated.Value(0)).current;
 
   const getLatestForumData = async () => {
+    const token = await AsyncStorage.getItem('auth_token');
     const payload = {
-      limit: 10,
+      limit: 20,
       offset: pageLatestData,
     };
-    await dispatch(
-      ActionStudent.GetLatestForumData(payload, loginResponse.data.token),
-    );
+    await dispatch(ActionStudent.GetLatestForumData(payload, token));
   };
 
   const getTrendingForumData = async () => {
+    const token = await AsyncStorage.getItem('auth_token');
     const payload = {
-      limit: 10,
+      limit: 20,
       offset: pageTrendingData,
     };
-    await dispatch(
-      ActionStudent.GetTrendingForumData(payload, loginResponse.data.token),
-    );
+    await dispatch(ActionStudent.GetTrendingForumData(payload, token));
   };
+
+  const fetchByTab = useCallback(() => {
+    if (activeTab === 'terbaru') {
+      getLatestForumData();
+    } else {
+      getTrendingForumData();
+    }
+  }, [activeTab, pageLatestData, pageTrendingData]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchByTab();
+
+      return () => {};
+    }, [fetchByTab]),
+  );
 
   useEffect(() => {
     Animated.timing(slideAnim, {
@@ -67,12 +83,6 @@ const ForumPage = () => {
       duration: 220,
       useNativeDriver: false,
     }).start();
-
-    if (activeTab === 'terbaru') {
-      getLatestForumData();
-    } else {
-      getTrendingForumData();
-    }
   }, [activeTab]);
 
   const translateX = slideAnim.interpolate({
@@ -108,7 +118,10 @@ const ForumPage = () => {
     );
 
     return (
-      <View style={styles.cardContainer}>
+      <TouchableOpacity
+        onPress={() => navigation.navigate('ForumDetailPage', { item })}
+        style={styles.cardContainer}
+      >
         <View style={styles.postContainer}>
           <View style={styles.postHeader}>
             <View style={styles.profileInitialContainer}>
@@ -191,7 +204,7 @@ const ForumPage = () => {
           </View>
           <Feather name={'upload'} size={16} color={Colors.neutral500} />
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -199,7 +212,7 @@ const ForumPage = () => {
     return (
       <View style={styles.forumContainer}>
         <FlatList
-          data={latestForumData.data}
+          data={latestForumData?.data}
           renderItem={({ item }) => {
             return <ForumCardComponent item={item} />;
           }}
@@ -213,7 +226,7 @@ const ForumPage = () => {
     return (
       <View style={styles.forumContainer}>
         <FlatList
-          data={trendingForumData.data}
+          data={trendingForumData?.data}
           renderItem={({ item }) => {
             return <ForumCardComponent item={item} />;
           }}
@@ -290,7 +303,10 @@ const ForumPage = () => {
           <TrendComponent />
         </View>
       </Animated.View>
-      <TouchableOpacity style={styles.fab}>
+      <TouchableOpacity
+        onPress={() => navigation.navigate('AddPostPage')}
+        style={styles.fab}
+      >
         <Ionicons name="add" size={24} color={Colors.white} />
       </TouchableOpacity>
     </View>
