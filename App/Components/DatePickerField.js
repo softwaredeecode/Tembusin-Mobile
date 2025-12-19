@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-//theme
+// theme
 import { Colors } from '../Theme/Colors';
 import { Fonts } from '../Theme/Fonts';
 
@@ -19,13 +19,31 @@ const DatePickerField = ({
   value,
   onChange,
 }) => {
-  const [showModal, setShowModal] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
   const [tempDate, setTempDate] = useState(value || new Date());
 
-  const handleConfirm = () => {
-    onChange(tempDate);
-    setShowModal(false);
+  const openPicker = () => {
+    if (Platform.OS === 'android') {
+      setShowPicker(true);
+    } else {
+      setShowPicker(true);
+    }
   };
+
+  const handleAndroidChange = (event, selectedDate) => {
+    setShowPicker(false);
+
+    if (event.type === 'set' && selectedDate) {
+      onChange(selectedDate);
+    }
+  };
+
+  const handleIOSConfirm = () => {
+    onChange(tempDate);
+    setShowPicker(false);
+  };
+
+  const displayText = value ? value.toLocaleDateString('id-ID') : placeholder;
 
   return (
     <View style={styles.container}>
@@ -33,51 +51,57 @@ const DatePickerField = ({
 
       <TouchableOpacity
         style={styles.input}
-        onPress={() => setShowModal(true)}
+        onPress={openPicker}
         activeOpacity={0.7}
       >
         <Text style={value ? styles.text : styles.placeholder}>
-          {value ? value.toLocaleDateString('id-ID') : placeholder}
+          {displayText}
         </Text>
       </TouchableOpacity>
 
-      {/* MODAL */}
-      <Modal
-        visible={showModal}
-        transparent
-        animationType="slide"
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            {/* Date Picker */}
-            <DateTimePicker
-              value={tempDate}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={(e, selected) => {
-                if (selected) setTempDate(selected);
-              }}
-            />
+      {/* ANDROID */}
+      {Platform.OS === 'android' && showPicker && (
+        <DateTimePicker
+          value={value || new Date()}
+          mode="date"
+          display="default"
+          onChange={handleAndroidChange}
+        />
+      )}
 
-            {/* Buttons */}
-            <View style={styles.buttonRow}>
-              <TouchableOpacity
-                style={[styles.button, styles.cancelButton]}
-                onPress={() => setShowModal(false)}
-              >
-                <Text style={styles.cancelText}>Batal</Text>
-              </TouchableOpacity>
+      {/* IOS */}
+      {Platform.OS === 'ios' && (
+        <Modal visible={showPicker} transparent animationType="slide">
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <DateTimePicker
+                value={tempDate}
+                mode="date"
+                display="spinner"
+                onChange={(e, selected) => {
+                  if (selected) setTempDate(selected);
+                }}
+              />
 
-              <TouchableOpacity
-                style={[styles.button, styles.okButton]}
-                onPress={handleConfirm}
-              >
-                <Text style={styles.okText}>Pilih</Text>
-              </TouchableOpacity>
+              <View style={styles.buttonRow}>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => setShowPicker(false)}
+                >
+                  <Text style={styles.cancelText}>Batal</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.okButton}
+                  onPress={handleIOSConfirm}
+                >
+                  <Text style={styles.okText}>Pilih</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
+      )}
     </View>
   );
 };

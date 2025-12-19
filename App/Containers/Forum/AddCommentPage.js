@@ -42,6 +42,7 @@ const AddCommentPage = props => {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   const handleAddComment = async () => {
+    Keyboard.dismiss();
     const token = await AsyncStorage.getItem('auth_token');
 
     const payload = JSON.stringify({
@@ -103,7 +104,16 @@ const AddCommentPage = props => {
       <View
         style={[
           styles.container,
-          { paddingBottom: isKeyboardVisible ? 0 : 20 },
+          {
+            paddingBottom: isKeyboardVisible
+              ? Platform.OS === 'android'
+                ? 35
+                : 0
+              : Platform.OS === 'android'
+              ? 0
+              : 20,
+          },
+          ,
         ]}
       >
         <MainHeader title={'Tulis komentar'} />

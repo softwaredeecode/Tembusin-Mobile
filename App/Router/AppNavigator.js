@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors } from '../Theme/Colors';
 import AuthNavigator from './AuthNavigator';
 import MainStackNavigator from './MainStackNavigator';
+import { AuthContext } from '../Context/AuthContext';
 
 const RootNavigator = () => {
   const insets = useSafeAreaInsets();
@@ -15,12 +16,23 @@ const RootNavigator = () => {
   const [currentRoute, setCurrentRoute] = useState(null);
 
   useEffect(() => {
-    const fetchToken = async () => {
+    const bootstrap = async () => {
       const token = await AsyncStorage.getItem('auth_token');
       setIsLoggedIn(!!token);
     };
-    fetchToken();
+    bootstrap();
   }, []);
+
+  const authContext = useMemo(
+    () => ({
+      signIn: () => setIsLoggedIn(true),
+      signOut: async () => {
+        await AsyncStorage.clear();
+        setIsLoggedIn(false);
+      },
+    }),
+    [],
+  );
 
   if (isLoggedIn === null) {
     return (
@@ -41,14 +53,16 @@ const RootNavigator = () => {
         paddingBottom: isLoggedIn ? 0 : insets.bottom,
       }}
     >
-      <NavigationContainer
-        onStateChange={state => {
-          const route = state.routes[state.index];
-          setCurrentRoute(route.name);
-        }}
-      >
-        {isLoggedIn ? <MainStackNavigator /> : <AuthNavigator />}
-      </NavigationContainer>
+      <AuthContext.Provider value={authContext}>
+        <NavigationContainer
+          onStateChange={state => {
+            const route = state.routes[state.index];
+            setCurrentRoute(route.name);
+          }}
+        >
+          {isLoggedIn ? <MainStackNavigator /> : <AuthNavigator />}
+        </NavigationContainer>
+      </AuthContext.Provider>
     </View>
   );
 };

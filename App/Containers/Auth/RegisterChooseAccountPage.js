@@ -198,13 +198,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: Colors.product900,
     borderRadius: 6,
-    height: 40,
     alignItems: 'center',
     marginTop: 28,
   },
   continueText: {
     fontFamily: Fonts.Medium,
     fontSize: 14,
+    lineHeight: 20,
     color: Colors.white,
   },
 });

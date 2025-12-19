@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
+  InteractionManager,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -49,13 +50,8 @@ const ForumDetailPage = props => {
     setIsFetchingMore(false);
   };
 
-  //   useEffect(() => {
-  //     dispatch({ type: ActionTypes.RESET_COMMENTS_STATE });
-  //     getCommentList(0);
-  //   }, []);
-
   const handleLoadMore = () => {
-    if (comments.length >= 32) {
+    if (comments.length >= 32 || comments.length == 0) {
       return;
     }
 
@@ -64,8 +60,12 @@ const ForumDetailPage = props => {
 
   useFocusEffect(
     useCallback(() => {
-      dispatch({ type: ActionTypes.RESET_COMMENTS_STATE });
-      getCommentList(0);
+      const task = InteractionManager.runAfterInteractions(() => {
+        dispatch({ type: ActionTypes.RESET_COMMENTS_STATE });
+        getCommentList(0);
+      });
+
+      return () => task.cancel();
     }, []),
   );
 
@@ -89,7 +89,7 @@ const ForumDetailPage = props => {
           </TouchableOpacity>
         }
       />
-      <View style={{flex: 1, backgroundColor: Colors.neutral50}}>
+      <View style={{ flex: 1, backgroundColor: Colors.neutral50 }}>
         <FlatList
           data={comments}
           keyExtractor={item => item.id.toString()}
