@@ -161,20 +161,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: Colors.product900,
     borderRadius: 6,
-    height: 40,
     alignItems: 'center',
     marginBottom: 12,
   },
   loginText: {
     fontFamily: Fonts.Medium,
     fontSize: 14,
+    lineHeight: 20,
     color: Colors.white,
   },
   registerButton: {
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 6,
-    height: 40,
     alignItems: 'center',
     marginBottom: 12,
     borderWidth: 1,
@@ -183,6 +182,7 @@ const styles = StyleSheet.create({
   registerText: {
     fontFamily: Fonts.Medium,
     fontSize: 14,
+    lineHeight: 20,
     color: Colors.neutral900,
   },
 });

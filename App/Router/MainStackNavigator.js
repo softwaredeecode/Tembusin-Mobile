@@ -31,16 +31,33 @@ const MainStackNavigator = () => {
       <Stack.Screen name="ExercisesPage" component={ExercisesPage} />
       <Stack.Screen name="MyExercisesPage" component={MyExercisesPage} />
       <Stack.Screen name="AllExercisesPage" component={AllExercisesPage} />
-      <Stack.Screen name="DetailPurchasesExercises" component={DetailPurchasesExercises} />
-      <Stack.Screen name="DetailStartExercises" component={DetailStartExercises} />
+      <Stack.Screen
+        name="DetailPurchasesExercises"
+        component={DetailPurchasesExercises}
+      />
+      <Stack.Screen
+        name="DetailStartExercises"
+        component={DetailStartExercises}
+      />
       <Stack.Screen name="TryOutPage" component={TryOutPage} />
       <Stack.Screen name="AllTryOutPage" component={AllTryOutPage} />
       <Stack.Screen name="MyTryOutPage" component={MyTryOutPage} />
-      <Stack.Screen name="DetailPurchaseTryOut" component={DetailPurchaseTryOut} />
+      <Stack.Screen
+        name="DetailPurchaseTryOut"
+        component={DetailPurchaseTryOut}
+      />
       <Stack.Screen name="DetailStartTryOut" component={DetailStartTryOut} />
-      <Stack.Screen name="ForumDetailPage" component={ForumDetailPage} />
+      <Stack.Screen
+        name="ForumDetailPage"
+        component={ForumDetailPage}
+        options={{ animation: 'none' }}
+      />
       <Stack.Screen name="AddCommentPage" component={AddCommentPage} />
-      <Stack.Screen name="AddPostPage" component={AddPostPage} />
+      <Stack.Screen
+        name="AddPostPage"
+        component={AddPostPage}
+        options={{ animation: 'none' }}
+      />
     </Stack.Navigator>
   );
 };

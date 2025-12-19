@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,9 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+//context
+import { AuthContext } from '../../Context/AuthContext';
 
 //redux
 import { useDispatch, useSelector } from 'react-redux';
@@ -27,6 +30,7 @@ const LoginPage = () => {
   const { loginResponse, loginSpinner, errorModal } = useSelector(
     state => state.login,
   );
+  const { signIn } = useContext(AuthContext);
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -47,6 +51,7 @@ const LoginPage = () => {
             ['auth_token', loginResponse.data.token],
             ['user_data', JSON.stringify(loginResponse.data.user)],
           ]);
+          signIn();
         } catch (error) {
           console.log('Failed to save token', error);
         }
@@ -176,13 +181,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: Colors.product900,
     borderRadius: 6,
-    height: 40,
     alignItems: 'center',
     marginTop: 28,
   },
   loginText: {
     fontFamily: Fonts.Medium,
     fontSize: 14,
+    lineHeight: 20,
     color: Colors.white,
   },
   orContainer: {
@@ -207,7 +212,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 6,
-    height: 40,
     alignItems: 'center',
     marginBottom: 12,
     borderWidth: 1,
@@ -216,6 +220,7 @@ const styles = StyleSheet.create({
   loginWithText: {
     fontFamily: Fonts.Medium,
     fontSize: 14,
+    lineHeight: 20,
     color: Colors.neutral900,
   },
   image: {

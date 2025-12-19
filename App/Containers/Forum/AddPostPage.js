@@ -39,6 +39,7 @@ const AddPostPage = () => {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   const handleAddPost = async () => {
+    Keyboard.dismiss();
     const token = await AsyncStorage.getItem('auth_token');
 
     const payload = JSON.stringify({
@@ -97,7 +98,15 @@ const AddPostPage = () => {
         <View
           style={[
             styles.container,
-            { paddingBottom: isKeyboardVisible ? 0 : 20 },
+            {
+              paddingBottom: isKeyboardVisible
+                ? Platform.OS === 'android'
+                  ? 35
+                  : 0
+                : Platform.OS === 'android'
+                ? 0
+                : 20,
+            },
           ]}
         >
           <StatusBar

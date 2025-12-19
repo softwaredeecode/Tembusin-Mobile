@@ -16,23 +16,50 @@ import { Fonts } from '../Theme/Fonts';
 
 const InputDatePicker = ({ title, value, setValue, placeholder }) => {
   const [showPicker, setShowPicker] = useState(false);
-  const [tempDate, setTempDate] = useState(value ? new Date(value) : new Date());
+  const [tempDate, setTempDate] = useState(
+    value ? new Date(value) : new Date(),
+  );
 
-  const handleDateChange = (event, selectedDate) => {
-    if (selectedDate) setTempDate(selectedDate);
+  const formatDate = date => {
+    if (!date) return '';
+
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+
+    const day = date.getDate();
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+
+    return `${day} ${month} ${year}`;
+  };
+
+  const onChange = (event, selectedDate) => {
+    if (Platform.OS === 'android') {
+      setShowPicker(false);
+      if (event.type === 'set' && selectedDate) {
+        setValue(formatDate(selectedDate));
+      }
+    } else {
+      if (selectedDate) setTempDate(selectedDate);
+    }
   };
 
   const handleDone = () => {
-    // Format date to DD MMM YYYY
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const formattedDate = `${tempDate.getDate()} ${months[tempDate.getMonth()]} ${tempDate.getFullYear()}`;
-
-    setValue(formattedDate);
+    setValue(formatDate(tempDate));
     setShowPicker(false);
   };
-
-  const displayText = value || placeholder || '00/00/0000';
-  const isPlaceholder = !value;
 
   return (
     <View>
@@ -43,39 +70,40 @@ const InputDatePicker = ({ title, value, setValue, placeholder }) => {
         style={styles.inputContainer}
         activeOpacity={0.7}
       >
-        <Text
-          style={[
-            styles.textValue,
-            isPlaceholder && styles.placeholderText,
-          ]}
-        >
-          {displayText}
+        <Text style={[styles.textValue, !value && styles.placeholderText]}>
+          {value || placeholder || '00/00/0000'}
         </Text>
-
         <Icon name="calendar-outline" size={20} color={Colors.neutral500} />
       </TouchableOpacity>
 
-      {/* Modal custom */}
-      <Modal visible={showPicker} transparent animationType="slide">
-        <View style={styles.modalBackground}>
-          <View style={styles.modalContainer}>
-            <DateTimePicker
-              value={tempDate}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
-              onChange={handleDateChange}
-            />
-
-            <TouchableOpacity
-              onPress={handleDone}
-              style={styles.doneButton}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.doneText}>Done</Text>
-            </TouchableOpacity>
+      {/* iOS: custom modal */}
+      {showPicker && Platform.OS === 'ios' && (
+        <Modal transparent animationType="slide">
+          <View style={styles.modalBackground}>
+            <View style={styles.modalContainer}>
+              <DateTimePicker
+                value={tempDate}
+                mode="date"
+                display="spinner"
+                onChange={onChange}
+              />
+              <TouchableOpacity onPress={handleDone} style={styles.doneButton}>
+                <Text style={styles.doneText}>OK</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
+      )}
+
+      {/* Android: native dialog */}
+      {showPicker && Platform.OS === 'android' && (
+        <DateTimePicker
+          value={tempDate}
+          mode="date"
+          display="calendar"
+          onChange={onChange}
+        />
+      )}
     </View>
   );
 };

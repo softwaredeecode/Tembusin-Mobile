@@ -58,6 +58,8 @@ const MainNavigator = () => {
         name="ForumPage"
         component={ForumPage}
         options={{
+          unmountOnBlur: true,
+          animation: 'none',
           tabBarIcon: ({ focused }) => (
             <IconWrapper>
               <Ionicons
