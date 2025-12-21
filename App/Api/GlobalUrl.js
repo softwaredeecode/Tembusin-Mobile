@@ -2,6 +2,8 @@ export const BASE_URL = 'https://be-tembusin.deecodesoftware.com/api';
 
 export const AUTH = {
   register: '/register',
+  verifyOtpRegister: '/register/verify',
+  resendOtpRegister: '/register/resend-otp',
   login: '/login',
 };
 

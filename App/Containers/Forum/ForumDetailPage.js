@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -19,49 +19,72 @@ import ForumDetailCardComponent from '../../Components/ForumDetailCardComponent'
 import { Colors } from '../../Theme/Colors';
 import { Fonts } from '../../Theme/Fonts';
 
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { ActionStudent } from '../../Redux/Actions';
 import * as ActionTypes from '../../Redux/Constants/Types';
 
 const LIMIT = 10;
 
 const ForumDetailPage = props => {
-  const forumDetailData = props.route.params.item;
+  const forumDetailData = props?.route?.params?.item;
   const dispatch = useDispatch();
-  const { comments, forumSpinner } = useSelector(state => state.forum);
 
+  // ===== LOCAL UI STATE =====
+  const [commentList, setCommentList] = useState([]);
+  const [hasMore, setHasMore] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  const getCommentList = async (offset = 0) => {
-    if (forumSpinner || isFetchingMore) return;
+  // ===== FETCH COMMENTS =====
+  const getCommentList = async offset => {
+    if (isFetchingMore || !hasMore) return;
 
     setIsFetchingMore(true);
 
     const token = await AsyncStorage.getItem('auth_token');
+
     const payload = {
       limit: LIMIT,
       offset,
     };
 
-    await dispatch(
+    const result = await dispatch(
       ActionStudent.GetComments(forumDetailData.id, payload, token),
     );
 
-    setIsFetchingMore(false);
-  };
+    const responseData = result?.data?.data || [];
+    const meta = result?.data;
 
-  const handleLoadMore = () => {
-    if (comments.length >= 32 || comments.length == 0) {
-      return;
+    setCommentList(prev =>
+      offset === 0 ? responseData : [...prev, ...responseData],
+    );
+
+    // === STOP FETCH KALAU DATA HABIS ===
+    if (responseData.length < LIMIT || meta?.page >= meta?.total_pages) {
+      setHasMore(false);
     }
 
-    getCommentList(comments.length);
+    setIsFetchingMore(false);
+    setIsInitialLoad(false);
   };
 
+  // ===== LOAD MORE =====
+  const handleLoadMore = () => {
+    if (isInitialLoad) return;
+    if (isFetchingMore) return;
+    if (!hasMore) return;
+
+    getCommentList(commentList.length);
+  };
+
+  // ===== FIRST LOAD =====
   useFocusEffect(
     useCallback(() => {
       const task = InteractionManager.runAfterInteractions(() => {
         dispatch({ type: ActionTypes.RESET_COMMENTS_STATE });
+        setCommentList([]);
+        setHasMore(true);
+        setIsInitialLoad(true);
         getCommentList(0);
       });
 
@@ -78,7 +101,7 @@ const ForumDetailPage = props => {
       />
 
       <MainHeader
-        title={'Baca postingan'}
+        title="Baca postingan"
         rightComponent={
           <TouchableOpacity style={styles.shareButtonContainer}>
             <Ionicons
@@ -89,51 +112,47 @@ const ForumDetailPage = props => {
           </TouchableOpacity>
         }
       />
-      <View style={{ flex: 1, backgroundColor: Colors.neutral50 }}>
-        <FlatList
-          data={comments}
-          keyExtractor={item => item.id.toString()}
-          onEndReached={handleLoadMore}
-          onEndReachedThreshold={0.1}
-          contentContainerStyle={styles.scrollContainer}
-          onMomentumScrollBegin={() => setIsFetchingMore(false)}
-          ListHeaderComponent={
-            <>
-              <ForumDetailCardComponent
-                forumDetailData={forumDetailData}
-                showCommentButton={true}
-              />
-              <View style={styles.commentsContainer}>
-                <Text style={styles.commentsTitleText}>
-                  {forumDetailData.comment_count} komentar
-                </Text>
-              </View>
-            </>
-          }
-          ListFooterComponent={
-            isFetchingMore ? (
-              <View style={{ padding: 16 }}>
-                <ActivityIndicator size="small" color={Colors.neutral500} />
-              </View>
-            ) : null
-          }
-          renderItem={({ item, index }) => {
-            return (
-              <View
-                style={
-                  index == 0
-                    ? styles.itemContainerFirst
-                    : index == comments.length - 1
-                    ? styles.lastItemContainer
-                    : styles.itemContainer
-                }
-              >
-                <ForumDetailCardComponent forumDetailData={item} />
-              </View>
-            );
-          }}
-        />
-      </View>
+
+      <FlatList
+        data={commentList}
+        keyExtractor={item => item.id.toString()}
+        contentContainerStyle={styles.scrollContainer}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.2}
+        ListHeaderComponent={
+          <>
+            <ForumDetailCardComponent
+              forumDetailData={forumDetailData}
+              showCommentButton
+            />
+            <View style={styles.commentsContainer}>
+              <Text style={styles.commentsTitleText}>
+                {forumDetailData.comment_count} komentar
+              </Text>
+            </View>
+          </>
+        }
+        ListFooterComponent={
+          isFetchingMore ? (
+            <View style={{ padding: 16 }}>
+              <ActivityIndicator size="small" color={Colors.neutral500} />
+            </View>
+          ) : null
+        }
+        renderItem={({ item, index }) => (
+          <View
+            style={
+              index === 0
+                ? styles.itemContainerFirst
+                : index === commentList.length - 1
+                ? styles.lastItemContainer
+                : styles.itemContainer
+            }
+          >
+            <ForumDetailCardComponent forumDetailData={item} />
+          </View>
+        )}
+      />
     </View>
   );
 };
@@ -149,7 +168,10 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     paddingBottom: 50,
   },
-  commentsContainer: { paddingTop: 16, paddingHorizontal: 16 },
+  commentsContainer: {
+    paddingTop: 16,
+    paddingHorizontal: 16,
+  },
   commentsTitleText: {
     fontFamily: Fonts.Medium,
     fontSize: 12,
