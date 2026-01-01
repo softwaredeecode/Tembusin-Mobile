@@ -1,4 +1,4 @@
-import { PostRegister } from './PostRegister';
+import { PostRegister, RegisterVerifyOtp, RegisterResendOtp } from './PostRegister';
 import { Login } from './Login';
 import {
   GetLatestForumData,
@@ -10,6 +10,8 @@ import {
 
 export const ActionStudent = {
   PostRegister,
+  RegisterVerifyOtp,
+  RegisterResendOtp,
   Login,
   GetLatestForumData,
   GetTrendingForumData,

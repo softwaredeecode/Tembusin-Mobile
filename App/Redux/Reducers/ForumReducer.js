@@ -63,7 +63,7 @@ export const ForumReducer = (state = initialState, action) => {
     case actionTypes.GET_COMMENTS_SUCCESS:
       return {
         ...state,
-        comments: [...state.comments, ...action.payload.comments],
+        comments: action.payload.comments,
         forumSpinner: false,
         errorModal: false,
       };

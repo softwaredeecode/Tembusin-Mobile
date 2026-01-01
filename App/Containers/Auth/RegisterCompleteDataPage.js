@@ -23,7 +23,7 @@ import { Fonts } from '../../Theme/Fonts';
 
 const RegisterCompleteDataPage = props => {
   const navigation = useNavigation();
-  const registrationData = props?.route?.params;
+  const registrationData = props?.route?.params?.data;
   const [birthDate, setBirthDate] = useState('');
   const [gender, setGender] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');

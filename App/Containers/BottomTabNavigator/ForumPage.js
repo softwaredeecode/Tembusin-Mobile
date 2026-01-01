@@ -170,7 +170,7 @@ const ForumPage = () => {
       <View style={{ flex: 1 }}>
         {activeTab === 'terbaru' ? (
           <FlatList
-            data={latestForumData?.data || []}
+            data={latestForumData?.data?.data || []}
             renderItem={renderForumItem}
             keyExtractor={item => item.id.toString()}
             refreshing={refreshingLatest}
@@ -184,7 +184,7 @@ const ForumPage = () => {
           />
         ) : (
           <FlatList
-            data={trendingForumData?.data || []}
+            data={trendingForumData?.data?.data || []}
             renderItem={renderForumItem}
             keyExtractor={item => item.id.toString()}
             refreshing={refreshingTrending}
