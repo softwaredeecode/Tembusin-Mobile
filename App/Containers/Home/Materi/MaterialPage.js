@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useCallback } from 'react';
 import {
   View,
   StatusBar,
@@ -8,20 +8,28 @@ import {
   FlatList,
   ScrollView,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // components
 import MainHeader from '../../../Components/MainHeader';
 import MaterialCardComponent from '../../../Components/MaterialCardComponent';
+import ListEmptyComponent from '../../../Components/ListEmptyComponents';
 
 //theme
 import { Colors } from '../../../Theme/Colors';
 import { Fonts } from '../../../Theme/Fonts';
 
+// redux
+import { useDispatch, useSelector } from 'react-redux';
+import { ActionStudent } from '../../../Redux/Actions';
+import * as ActionTypes from '../../../Redux/Constants/Types';
+
 const MaterialPage = () => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
 
   const lastOpenData = {
     title: 'Materi SNBT 2025',
@@ -29,47 +37,27 @@ const MaterialPage = () => {
     progress: '50%',
   };
 
-  const materialData = [
-    {
-      materialTitle: 'Materi SNBT 2024',
-      date: 'Akses 3 Nov - 5 Nov',
-      desc: 'Untuk memberi <b>SNBT Juara.</b>',
-      category: 'SNBT',
-      seperateBuy: false,
-      jenjang: 2,
-      bab: 4,
-      subBab: 8,
-      materi: 10,
-      tokenPrice: 0,
-      payMethod: 'member',
-    },
-    {
-      materialTitle: 'Materi SNBT 2023',
-      date: 'Akses 3 Nov - 5 Nov',
-      desc: 'Untuk memberi <b>SNBT Juara.</b>',
-      category: 'SNBT',
-      seperateBuy: true,
-      jenjang: 2,
-      bab: 4,
-      subBab: 8,
-      materi: 10,
-      tokenPrice: 50,
-      payMethod: 'token',
-    },
-    {
-      materialTitle: 'Materi SNBT 2022 (Lite)',
-      date: 'Akses 3 Nov - 5 Nov',
-      desc: '',
-      category: 'SNBT',
-      seperateBuy: true,
-      jenjang: 2,
-      bab: 4,
-      subBab: 8,
-      materi: 10,
-      tokenPrice: 0,
-      payMethod: 'free',
-    },
-  ];
+  const { materialCollectionData, materialSpinner } = useSelector(
+    state => state.material,
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      const initializeData = async () => {
+        const token = await AsyncStorage.getItem('auth_token');
+
+        dispatch(
+          ActionStudent.GetMaterialCollectionData(token, {
+            page: 1,
+            limit: 3,
+          }),
+        );
+      };
+      initializeData();
+
+      return () => {};
+    }, [dispatch]),
+  );
 
   return (
     <View style={{ flex: 1, backgroundColor: 'white' }}>
@@ -152,35 +140,50 @@ const MaterialPage = () => {
           <Text style={styles.exploreAllProductTitleText}>
             Jelajahi semua materi!
           </Text>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('AllMaterialPage')}
-            style={[styles.row, styles.exploreAllProductTitleButtonContainer]}
-          >
-            <Text style={styles.exploreAllProductTitleButtonText}>
-              Lihat semua
-            </Text>
-            <Ionicons
-              name={'chevron-forward'}
-              size={14}
-              color={Colors.product500}
-            />
-          </TouchableOpacity>
+          {materialCollectionData?.data?.total_items > 3 && (
+            <TouchableOpacity
+              onPress={() => navigation.navigate('AllMaterialPage')}
+              style={[styles.row, styles.exploreAllProductTitleButtonContainer]}
+            >
+              <Text style={styles.exploreAllProductTitleButtonText}>
+                Lihat semua
+              </Text>
+              <Ionicons
+                name={'chevron-forward'}
+                size={14}
+                color={Colors.product500}
+              />
+            </TouchableOpacity>
+          )}
         </View>
         <FlatList
-          data={materialData}
-          renderItem={({ item }) => {
-            return <MaterialCardComponent item={item} />;
-          }}
+          data={materialCollectionData?.data?.data || []}
+          renderItem={({ item }) => <MaterialCardComponent item={item} />}
+          keyExtractor={(item, index) =>
+            item.id?.toString() || index.toString()
+          }
           scrollEnabled={false}
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-          gap={12}
+          ListEmptyComponent={
+            !materialSpinner ? (
+              <ListEmptyComponent
+                title={'Belum ada materi yang tersedia'}
+                desc={
+                  'Materi belum tersedia untuk saat ini. Silakan cek kembali di lain waktu'
+                }
+                iconName={'book-open-blank-variant'}
+              />
+            ) : null
+          }
         />
-        <TouchableOpacity
-          onPress={() => navigation.navigate('AllMaterialPage')}
-          style={styles.openAllMaterialContainer}
-        >
-          <Text style={styles.openAllMaterialText}>Lihat semua materi</Text>
-        </TouchableOpacity>
+        {materialCollectionData?.data?.total_items > 3 && (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('AllMaterialPage')}
+            style={styles.openAllMaterialContainer}
+          >
+            <Text style={styles.openAllMaterialText}>Lihat semua materi</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </View>
   );

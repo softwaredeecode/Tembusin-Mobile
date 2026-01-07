@@ -5,6 +5,7 @@ import MainNavigator from './MainNavigator';
 import MaterialPage from '../Containers/Home/Materi/MaterialPage';
 import AllMaterialPage from '../Containers/Home/Materi/AllMaterialPage';
 import MyMaterialPage from '../Containers/Home/Materi/MyMaterialPage';
+import MaterialDetailPage from '../Containers/Home/Materi/MaterialDetailPage';
 import ExercisesPage from '../Containers/Home/Exercises/ExercisesPage';
 import MyExercisesPage from '../Containers/Home/Exercises/MyExercisesPage';
 import AllExercisesPage from '../Containers/Home/Exercises/AllExercisesPage';
@@ -28,6 +29,7 @@ const MainStackNavigator = () => {
       <Stack.Screen name="MaterialPage" component={MaterialPage} />
       <Stack.Screen name="AllMaterialPage" component={AllMaterialPage} />
       <Stack.Screen name="MyMaterialPage" component={MyMaterialPage} />
+      <Stack.Screen name="MaterialDetailPage" component={MaterialDetailPage} />
       <Stack.Screen name="ExercisesPage" component={ExercisesPage} />
       <Stack.Screen name="MyExercisesPage" component={MyExercisesPage} />
       <Stack.Screen name="AllExercisesPage" component={AllExercisesPage} />
