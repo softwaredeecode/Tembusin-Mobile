@@ -14,3 +14,9 @@ export const FORUM = {
   addComment: '/comments',
   addPost: '/posts'
 };
+
+export const MATERIAL = {
+  materialCollection: '/student/material-collections/paginated',
+  myMaterialCollection: '/student/my-materials/paginated',
+  materialCollectionDetail: '/student/material-collections'
+}

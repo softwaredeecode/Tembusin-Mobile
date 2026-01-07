@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   StatusBar,
@@ -9,8 +9,10 @@ import {
   Modal,
   ScrollView,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // components
 import MainHeader from '../../../Components/MainHeader';
@@ -20,14 +22,21 @@ import BottomModal from '../../../Components/BottomModal';
 import FilterButton from '../../../Components/FilterButton';
 import CheckboxRow from '../../../Components/CheckboxRow';
 import DatePickerField from '../../../Components/DatePickerField';
+import ListEmptyComponent from '../../../Components/ListEmptyComponents';
 
 //theme
 import { Colors } from '../../../Theme/Colors';
 import { Fonts } from '../../../Theme/Fonts';
 
+// redux
+import { useSelector, useDispatch } from 'react-redux';
+import { ActionStudent } from '../../../Redux/Actions';
+import * as ActionTypes from '../../../Redux/Constants/Types';
+
 const screenHeight = Dimensions.get('window').height;
 
 const AllMaterialPage = () => {
+  const dispatch = useDispatch();
   const [searchMaterial, setSearchMaterial] = useState('');
   const [filterVisible, setFilterVisible] = useState(false);
   const [filter, setFilter] = useState({
@@ -42,51 +51,53 @@ const AllMaterialPage = () => {
   });
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+  const [page, setPage] = useState(1);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const openFilter = () => setFilterVisible(true);
   const closeFilter = () => setFilterVisible(false);
 
-  const allMaterialData = [
-    {
-      materialTitle: 'Materi SNBT 2024',
-      date: 'Akses 3 Nov - 5 Nov',
-      desc: 'Untuk memberi <b>SNBT Juara.</b>',
-      category: 'SNBT',
-      seperateBuy: false,
-      jenjang: 2,
-      bab: 4,
-      subBab: 8,
-      materi: 10,
-      tokenPrice: 0,
-      payMethod: 'member',
-    },
-    {
-      materialTitle: 'Materi SNBT 2023',
-      date: 'Akses 3 Nov - 5 Nov',
-      desc: 'Untuk memberi <b>SNBT Juara.</b>',
-      category: 'SNBT',
-      seperateBuy: true,
-      jenjang: 2,
-      bab: 4,
-      subBab: 8,
-      materi: 10,
-      tokenPrice: 50,
-      payMethod: 'token',
-    },
-    {
-      materialTitle: 'Materi SNBT 2022 (Lite)',
-      date: 'Akses 3 Nov - 5 Nov',
-      desc: '',
-      category: 'SNBT',
-      seperateBuy: true,
-      jenjang: 2,
-      bab: 4,
-      subBab: 8,
-      materi: 10,
-      tokenPrice: 0,
-      payMethod: 'free',
-    },
-  ];
+  const { materialCollectionData, materialSpinner } = useSelector(
+    state => state.material,
+  );
+
+  useEffect(() => {
+    loadInitialData();
+  }, []);
+
+  const loadInitialData = async () => {
+    const token = await AsyncStorage.getItem('auth_token');
+    setPage(1);
+
+    dispatch(
+      ActionStudent.GetMaterialCollectionData(token, {
+        page: 1,
+        limit: 10,
+      }),
+    );
+  };
+
+  const loadMoreData = async () => {
+    if (isLoadingMore) return;
+
+    const totalPages = materialCollectionData?.data?.total_pages || 1;
+    if (page >= totalPages) return;
+
+    setIsLoadingMore(true);
+
+    const nextPage = page + 1;
+    const token = await AsyncStorage.getItem('auth_token');
+
+    await dispatch(
+      ActionStudent.GetMaterialCollectionData(token, {
+        page: nextPage,
+        limit: 10,
+      }),
+    );
+
+    setPage(nextPage);
+    setIsLoadingMore(false);
+  };
 
   return (
     <View style={styles.container}>
@@ -109,11 +120,31 @@ const AllMaterialPage = () => {
 
       <View style={styles.bodyContainer}>
         <FlatList
-          data={allMaterialData}
+          data={materialCollectionData?.data?.data || []}
           renderItem={({ item }) => <MaterialCardComponent item={item} />}
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
           contentContainerStyle={{ paddingBottom: 20 }}
           keyboardDismissMode="on-drag"
+          onEndReached={loadMoreData}
+          onEndReachedThreshold={0.3}
+          ListFooterComponent={
+            isLoadingMore ? (
+              <View style={{ paddingVertical: 16 }}>
+                <ActivityIndicator size="small" color={Colors.product900} />
+              </View>
+            ) : null
+          }
+          ListEmptyComponent={
+            !materialSpinner ? (
+              <ListEmptyComponent
+                title={'Belum ada materi yang tersedia'}
+                desc={
+                  'Materi belum tersedia untuk saat ini. Silakan cek kembali di lain waktu'
+                }
+                iconName={'book-open-blank-variant'}
+              />
+            ) : null
+          }
         />
       </View>
       <BottomModal

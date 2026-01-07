@@ -1,5 +1,14 @@
-import { PostRegister, RegisterVerifyOtp, RegisterResendOtp } from './PostRegister';
+import {
+  PostRegister,
+  RegisterVerifyOtp,
+  RegisterResendOtp,
+} from './PostRegister';
 import { Login } from './Login';
+import {
+  GetMaterialCollectionData,
+  GetMyMaterialCollectionData,
+  GetMaterialCollectionDetailData,
+} from './Material';
 import {
   GetLatestForumData,
   GetTrendingForumData,
@@ -17,5 +26,8 @@ export const ActionStudent = {
   GetTrendingForumData,
   GetComments,
   AddComments,
-  AddPost
+  AddPost,
+  GetMaterialCollectionData,
+  GetMyMaterialCollectionData,
+  GetMaterialCollectionDetailData,
 };
