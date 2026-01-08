@@ -16,7 +16,9 @@ const MainHeader = ({
   const navigation = useNavigation();
 
   const handleBack = () => {
-    if (onBackPress) return onBackPress();
+    if (onBackPress) {
+      onBackPress();
+    }
     navigation.goBack();
   };
 

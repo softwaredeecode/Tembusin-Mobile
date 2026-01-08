@@ -12,6 +12,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
+import { useNavigation } from '@react-navigation/native';
 
 //theme
 import { Colors } from '../Theme/Colors';
@@ -19,49 +20,95 @@ import { Fonts } from '../Theme/Fonts';
 
 const MaterialCardComponent = ({ item }) => {
   const { width } = useWindowDimensions();
-  const buttonText =
-    item.progress == 0
+  const navigation = useNavigation();
+  const buttonText = item.is_purchased
+    ? item.statistics.progress_percentage == 0
       ? 'Pelajari'
-      : item.progress < 100
+      : item.statistics.progress_percentage < 100
       ? 'Lanjutkan'
-      : item.progress == 100
+      : item.statistics.progress_percentage == 100
       ? 'Pelajari Ulang'
-      : 'Beli';
+      : 'Selesai'
+    : item.access_type.id == 4
+    ? 'Ambil'
+    : 'Beli';
+
+  const formatDate = dateString => {
+    const [year, month, day] = dateString.split('T')[0].split('-');
+
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
+    ];
+
+    return `${day} ${months[Number(month) - 1]} ${year}`;
+  };
+
+  const handleOnPress = item => {
+    if (!item.is_purchased) {
+      navigation.navigate('MaterialDetailPage', {
+        materialCollectionId: item.id,
+      });
+    }
+  };
 
   return (
     <View style={styles.materialCardContainer}>
       <Image
-        source={require('../Assets/Images/dummyHome.png')}
+        source={{ uri: item.banner_url }}
         style={styles.image}
         resizeMode="cover"
       />
+
       <View style={styles.badgeContainer}>
-        {item.jenjang > 0 && (
+        {item?.statistics?.total_categories > 0 && (
           <View style={styles.badge}>
-            <Text style={styles.badgeText}>{item.jenjang} Jenjang</Text>
+            <Text style={styles.badgeText}>
+              {item?.statistics?.total_categories} Jenjang
+            </Text>
           </View>
         )}
-        {item.bab > 0 && (
+        {item?.statistics?.total_chapters > 0 && (
           <View style={styles.badge}>
-            <Text style={styles.badgeText}>{item.bab} Bab</Text>
+            <Text style={styles.badgeText}>
+              {item?.statistics?.total_chapters} Bab
+            </Text>
           </View>
         )}
-        {item.subBab > 0 && (
+        {item?.statistics?.total_subchapters > 0 && (
           <View style={styles.badge}>
-            <Text style={styles.badgeText}>{item.subBab} Sub-bab</Text>
+            <Text style={styles.badgeText}>
+              {item?.statistics?.total_subchapters} Sub-bab
+            </Text>
           </View>
         )}
-        {item.materi > 0 && (
+        {item?.statistics?.total_materials > 0 && (
           <View style={styles.badge}>
-            <Text style={styles.badgeText}>{item.materi} Materi</Text>
+            <Text style={styles.badgeText}>
+              {item?.statistics?.total_materials} Materi
+            </Text>
           </View>
         )}
       </View>
       <View style={styles.materialInfoContainer}>
         <View style={styles.materialTitleContainer}>
-          <Text style={styles.materialTitleText}>{item.materialTitle}</Text>
+          <Text style={styles.materialTitleText}>
+            {item.material_collection_name}
+          </Text>
           <View style={styles.materialCategoryContainer}>
-            <Text style={styles.materialCategoryText}>{item.category}</Text>
+            <Text style={styles.materialCategoryText}>
+              {item?.category?.category_name}
+            </Text>
           </View>
         </View>
       </View>
@@ -74,9 +121,13 @@ const MaterialCardComponent = ({ item }) => {
               color={Colors.neutral500}
             />
           </View>
-          <Text style={styles.materialDateText}>{item.date}</Text>
+          {item.start_time && item.end_time && (
+            <Text style={styles.materialDateText}>
+              {formatDate(item.start_time)} - {formatDate(item.end_time)}
+            </Text>
+          )}
         </View>
-        {item.desc !== '' && (
+        {item.description !== '' && (
           <View style={styles.materialDescContainer}>
             <View style={styles.dateIconContainer}>
               <MaterialCommunityIcons
@@ -87,7 +138,7 @@ const MaterialCardComponent = ({ item }) => {
             </View>
             <RenderHtml
               contentWidth={width}
-              source={{ html: item.desc }}
+              source={{ html: item.description }}
               tagsStyles={{
                 b: { fontWeight: 'bold' },
               }}
@@ -95,7 +146,7 @@ const MaterialCardComponent = ({ item }) => {
             />
           </View>
         )}
-        {item.seperateBuy && (
+        {item?.seperateBuy && (
           <View style={styles.seperateBuyContainer}>
             <Ionicons name={'checkmark'} size={14} color={Colors.success500} />
             <Text style={styles.seperateBuyText}>Dapat dibeli terpisah</Text>
@@ -113,30 +164,40 @@ const MaterialCardComponent = ({ item }) => {
         )}
       </View>
       <View style={styles.materialBuyContainer}>
-        {item.progress !== undefined ? (
+        {item.is_purchased ? (
           <View style={[styles.row, { gap: 6 }]}>
             <AnimatedCircularProgress
               size={24}
               width={4}
-              fill={item.progress}
+              fill={item.statistics.progress_percentage}
               tintColor={Colors.warning500}
               backgroundColor={Colors.neutral200}
               rotation={180}
               lineCap="round"
             ></AnimatedCircularProgress>
-            <Text style={styles.progressText}>{item.progress}%</Text>
+            <Text style={styles.progressText}>
+              {item.statistics.progress_percentage}%
+            </Text>
           </View>
         ) : (
           <View style={{ flex: 1 }} />
         )}
-        {item.payMethod === 'token' && (
-          <View style={[styles.row, { gap: 6 }]}>
-            <FontAwesome name={'money'} size={16} color={Colors.warning500} />
-            <Text style={styles.priceToken}>50</Text>
-          </View>
+        {(item?.access_type?.id === 1 || item?.access_type?.id === 3) &&
+          !item.is_purchased && (
+            <View style={[styles.row, { gap: 6 }]}>
+              <FontAwesome name={'money'} size={16} color={Colors.warning500} />
+              <Text style={styles.priceToken}>{item.price_token}</Text>
+            </View>
+          )}
+        {item?.access_type?.id === 4 && !item.is_purchased && (
+          <Text style={styles.freeText}>Free</Text>
         )}
-        {item.payMethod === 'free' && <Text style={styles.freeText}>Free</Text>}
-        <TouchableOpacity style={styles.buyButtonContainer}>
+        <TouchableOpacity
+          onPress={() => {
+            handleOnPress(item);
+          }}
+          style={styles.buyButtonContainer}
+        >
           <Text style={styles.buyButtonText}>{buttonText}</Text>
         </TouchableOpacity>
       </View>
@@ -155,6 +216,9 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
+    height: 190,
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
   },
   badgeContainer: {
     position: 'absolute',

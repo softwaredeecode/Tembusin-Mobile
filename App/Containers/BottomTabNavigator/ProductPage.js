@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,10 +7,14 @@ import {
   Animated,
   Dimensions,
   FlatList,
+  InteractionManager,
+  ActivityIndicator,
 } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 //theme
 import { Colors } from '../../Theme/Colors';
@@ -18,15 +22,30 @@ import { Fonts } from '../../Theme/Fonts';
 
 // components
 import AuthenticatedHeader from '../../Components/AuthenticatedHeader';
+import ProductPackageCardComponent from '../../Components/ProductPackageCardComponent';
+import ProductTokenCardComponent from '../../Components/ProductTokenCardComponent';
+import ListEmptyComponent from '../../Components/ListEmptyComponents';
 
-//helper
-import { rupiahFormat } from '../../Utils/Helper';
+// redux
+import { useDispatch, useSelector } from 'react-redux';
+import { ActionStudent } from '../../Redux/Actions';
+import * as ActionTypes from '../../Redux/Constants/Types';
 
 const SCREEN_WIDTH = Dimensions.get('screen').width;
+const SCREEN_HEIGHT = Dimensions.get('screen').height;
 
 const ProductPage = () => {
-  const [activeTab, setActiveTab] = useState('Paket');
+  const dispatch = useDispatch();
+  const navigation = useNavigation();
+  const hasFetched = useRef(false);
+
+  const { productListData, productSpinner } = useSelector(
+    state => state.product,
+  );
+
+  const [activeTab, setActiveTab] = useState('2');
   const [tabWidth, setTabWidth] = useState(0);
+  const [page, setPage] = useState(1);
 
   const slideAnim = useRef(new Animated.Value(0)).current;
   const translateX = slideAnim.interpolate({
@@ -38,191 +57,101 @@ const ProductPage = () => {
     outputRange: [0, -SCREEN_WIDTH],
   });
 
-  const paketData = [
-    {
-      id: 1,
-      title: 'Juara SNBT',
-      category: 'SNBT',
-      description: [
-        {
-          descId: 1,
-          descMessage: '5 materi pembelajaran',
-        },
-        {
-          descId: 2,
-          descMessage: '5 latihan soal',
-        },
-        {
-          descId: 3,
-          descMessage: 'Akses ke 5 try out SNBT',
-        },
-      ],
-      token: 50,
-      normalPrice: 150000,
-      discount: 30,
-    },
-    {
-      id: 2,
-      title: 'Hebat SNBT',
-      category: 'SNBT',
-      description: [
-        {
-          descId: 1,
-          descMessage: '5 materi pembelajaran',
-        },
-        {
-          descId: 2,
-          descMessage: '5 latihan soal',
-        },
-        {
-          descId: 3,
-          descMessage: 'Akses ke 5 try out SNBT',
-        },
-      ],
-      token: 50,
-      normalPrice: 150000,
-      discount: 30,
-    },
-    {
-      id: 3,
-      title: 'Juara TKA',
-      category: 'TKA',
-      description: [
-        {
-          descId: 1,
-          descMessage: '5 materi pembelajaran',
-        },
-        {
-          descId: 2,
-          descMessage: '5 latihan soal',
-        },
-        {
-          descId: 3,
-          descMessage: 'Akses ke 5 try out TKA',
-        },
-      ],
-      token: 50,
-      normalPrice: 150000,
-      discount: 30,
-    },
-    {
-      id: 4,
-      title: 'Hebat TKA',
-      category: 'TKA',
-      description: [
-        {
-          descId: 1,
-          descMessage: '5 materi pembelajaran',
-        },
-        {
-          descId: 2,
-          descMessage: '5 latihan soal',
-        },
-        {
-          descId: 3,
-          descMessage: 'Akses ke 5 try out TKA',
-        },
-      ],
-      token: 50,
-      normalPrice: 150000,
-      discount: 30,
-    },
-  ];
+  const loadMoreData = async () => {
+    if (productSpinner) return;
+
+    const totalPages = productListData?.data?.total_pages || 1;
+    if (page >= totalPages) return;
+
+    const nextPage = page + 1;
+    const token = await AsyncStorage.getItem('auth_token');
+
+    await Promise.all([
+      dispatch(
+        ActionStudent.GetProductList(token, {
+          page: nextPage,
+          limit: 10,
+          product_category_id: activeTab,
+        }),
+      ),
+    ]);
+
+    setPage(nextPage);
+  };
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      await dispatch({ type: ActionTypes.RESET_PRODUCT_LIST_DATA });
+      setPage(1);
+      const token = await AsyncStorage.getItem('auth_token');
+      await Promise.all([
+        dispatch(
+          ActionStudent.GetProductList(token, {
+            page: 1,
+            limit: 10,
+            product_category_id: activeTab,
+          }),
+        ),
+      ]);
+    };
+    fetchInitialData();
+  }, [activeTab]);
 
   useEffect(() => {
     Animated.timing(slideAnim, {
-      toValue: activeTab === 'paket' ? 0 : activeTab === 'token' ? 1 : 2,
+      toValue: activeTab === '2' ? 0 : activeTab === '1' ? 1 : 2,
       duration: 220,
       useNativeDriver: false,
     }).start();
   }, [activeTab]);
 
+  const renderProductPackageItem = useCallback(
+    ({ item }) => (
+      <ProductPackageCardComponent item={item} navigation={navigation} />
+    ),
+    [],
+  );
+
+  const renderTokenPackageItem = useCallback(
+    ({ item }) => (
+      <ProductTokenCardComponent item={item} navigation={navigation} />
+    ),
+    [],
+  );
+
+  const renderEmptyComponent = () => {
+    return (
+      <ListEmptyComponent
+        title={'Belum ada produk yang tersedia'}
+        desc={
+          'Produk belum tersedia untuk saat ini. Silakan cek kembali di lain waktu'
+        }
+        iconName={'book-open-blank-variant'}
+      />
+    );
+  };
+
   const PaketComponent = () => {
     return (
       <View style={styles.productContainer}>
         <FlatList
-          data={paketData}
-          keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => {
-            return (
-              <View style={styles.packageProductContainer}>
-                <View style={styles.packageProductInfoContainer}>
-                  <View style={styles.row}>
-                    <Text style={styles.productPackageTitleText}>
-                      {item.title}
-                    </Text>
-                    <View style={styles.packageCategoryContainer}>
-                      <Text style={styles.packageCategoryText}>
-                        {item.category}
-                      </Text>
-                    </View>
-                  </View>
-                  <View style={styles.descContainer}>
-                    {item.description.map((itemDesc, index) => {
-                      return (
-                        <View
-                          key={itemDesc.descId}
-                          style={[styles.row, { marginTop: 8 }]}
-                        >
-                          <View style={styles.checkIconContainer}>
-                            <Ionicons
-                              name={'checkmark'}
-                              size={14}
-                              color={Colors.neutral500}
-                            />
-                          </View>
-                          <Text>{itemDesc.descMessage}</Text>
-                        </View>
-                      );
-                    })}
-                  </View>
-                </View>
-                <View style={styles.packageProductPriceContainer}>
-                  <View style={[styles.row, { gap: 6 }]}>
-                    <FontAwesome
-                      name={'money'}
-                      size={16}
-                      color={Colors.warning500}
-                    />
-                    <Text style={styles.priceToken}>50</Text>
-                  </View>
-                  <Text style={{ color: Colors.neutral200 }}>|</Text>
-                  <View style={[styles.row, { gap: 6, alignItems: 'center' }]}>
-                    {item.discount > 0 ? (
-                      <>
-                        {/* Harga setelah diskon */}
-                        <Text style={styles.priceAfterDisc}>
-                          {rupiahFormat(
-                            item.normalPrice -
-                              (item.normalPrice * item.discount) / 100,
-                          )}
-                        </Text>
-
-                        {/* Harga normal tercoret */}
-                        <Text style={styles.normalPrice}>
-                          {rupiahFormat(item.normalPrice)}
-                        </Text>
-
-                        {/* Persentase diskon */}
-                        <View style={styles.discountContainer}>
-                          <Text style={styles.discountText}>
-                            {item.discount}%
-                          </Text>
-                        </View>
-                      </>
-                    ) : (
-                      <>
-                        {/* Hanya harga normal */}
-                        <Text style={styles.normalPriceWithoutDisc}>
-                          {rupiahFormat(item.normalPrice)}
-                        </Text>
-                      </>
-                    )}
-                  </View>
-                </View>
+          data={productListData?.data?.data}
+          renderItem={renderProductPackageItem}
+          keyboardDismissMode="on-drag"
+          onEndReached={loadMoreData}
+          onEndReachedThreshold={0.3}
+          ListFooterComponent={
+            productSpinner ? (
+              <View style={{ paddingVertical: 16 }}>
+                <ActivityIndicator size="small" color={Colors.product900} />
               </View>
-            );
+            ) : null
+          }
+          keyExtractor={item => item?.id?.toString()}
+          contentContainerStyle={{
+            paddingBottom: 20,
           }}
+          ListEmptyComponent={!productSpinner ? renderEmptyComponent() : null}
         />
       </View>
     );
@@ -230,14 +159,41 @@ const ProductPage = () => {
   const TokenComponent = () => {
     return (
       <View style={styles.productContainer}>
-        <Text>TOKEN</Text>
+        <FlatList
+          data={productListData?.data?.data}
+          renderItem={renderTokenPackageItem}
+          keyboardDismissMode="on-drag"
+          onEndReached={loadMoreData}
+          onEndReachedThreshold={0.3}
+          ListFooterComponent={
+            productSpinner ? (
+              <View style={{ paddingVertical: 16 }}>
+                <ActivityIndicator size="small" color={Colors.product900} />
+              </View>
+            ) : null
+          }
+          keyExtractor={item => item?.id?.toString()}
+          contentContainerStyle={{
+            paddingBottom: 20,
+          }}
+          ListEmptyComponent={!productSpinner ? renderEmptyComponent() : null}
+        />
       </View>
     );
   };
   const HistoryComponent = () => {
     return (
-      <View style={styles.productContainer}>
-        <Text>HISTORY</Text>
+      <View style={styles.comingSoonContainer}>
+        <MaterialCommunityIcons
+          name="clock-outline"
+          size={64}
+          color={Colors.neutral300}
+        />
+        <Text style={styles.comingSoonTitle}>Coming Soon</Text>
+        <Text style={styles.comingSoonDesc}>
+          Fitur riwayat transaksi akan segera tersedia. Nantikan pembaruannya
+          ya!
+        </Text>
       </View>
     );
   };
@@ -310,11 +266,11 @@ const ProductPage = () => {
           {/* Paket */}
           <TouchableOpacity
             style={styles.widthFlex}
-            onPress={() => setActiveTab('paket')}
+            onPress={() => setActiveTab('2')}
           >
             <Text
               style={
-                activeTab === 'paket'
+                activeTab === '2'
                   ? styles.activeSwitchText
                   : styles.inActiveSwitchText
               }
@@ -326,11 +282,11 @@ const ProductPage = () => {
           {/* Token */}
           <TouchableOpacity
             style={styles.widthFlex}
-            onPress={() => setActiveTab('token')}
+            onPress={() => setActiveTab('1')}
           >
             <Text
               style={
-                activeTab === 'token'
+                activeTab === '1'
                   ? styles.activeSwitchText
                   : styles.inActiveSwitchText
               }
@@ -342,11 +298,11 @@ const ProductPage = () => {
           {/* History */}
           <TouchableOpacity
             style={styles.widthFlex}
-            onPress={() => setActiveTab('history')}
+            onPress={() => setActiveTab('3')}
           >
             <Text
               style={
-                activeTab === 'history'
+                activeTab === '3'
                   ? styles.activeSwitchText
                   : styles.inActiveSwitchText
               }
@@ -472,7 +428,7 @@ const styles = StyleSheet.create({
   switchContainer: {
     paddingVertical: 12,
     paddingHorizontal: 16,
-    backgroundColor: Colors.product900
+    backgroundColor: Colors.product900,
   },
   switchChildContainer: {
     padding: 4,
@@ -510,97 +466,30 @@ const styles = StyleSheet.create({
   },
   productContainer: {
     paddingHorizontal: 16,
-    paddingBottom: 380,
     paddingTop: 4,
+    paddingBottom: SCREEN_HEIGHT * 0.4,
   },
-  packageProductContainer: {
-    marginTop: 12,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: Colors.neutral200,
-  },
-  packageProductInfoContainer: {
-    padding: 12,
-    borderBottomColor: Colors.neutral200,
-    borderBottomWidth: 1,
-  },
-  productPackageTitleText: {
-    fontFamily: Fonts.Medium,
-    fontSize: 14,
-    lineHeight: 18,
-    color: Colors.neutral900,
-    flex: 1,
-  },
-  packageCategoryContainer: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderWidth: 1,
-    borderColor: Colors.product200,
-    backgroundColor: Colors.product50,
-    borderRadius: 4,
-  },
-  packageCategoryText: {
-    fontFamily: Fonts.Medium,
-    fontSize: 12,
-    lineHeight: 18,
-    color: Colors.product900,
-  },
-  descContainer: {
-    marginTop: 4,
-  },
-  checkIconContainer: {
-    padding: 2,
-    borderWidth: 1,
-    borderRadius: 4,
-    borderColor: Colors.neutral200,
-    backgroundColor: Colors.neutral50,
-    marginRight: 6,
-  },
-  packageProductPriceContainer: {
-    padding: 12,
-    flexDirection: 'row',
+  comingSoonContainer: {
+    flex: 0.5,
+    justifyContent: 'center',
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    gap: 12,
+    paddingHorizontal: 32,
   },
-  priceToken: {
+
+  comingSoonTitle: {
+    marginTop: 16,
     fontFamily: Fonts.SemiBold,
-    fontSize: 14,
-    lineHeight: 18,
-    color: Colors.neutral900,
+    fontSize: 18,
+    color: Colors.neutral700,
   },
-  priceAfterDisc: {
-    fontFamily: Fonts.SemiBold,
+
+  comingSoonDesc: {
+    marginTop: 8,
+    fontFamily: Fonts.Regular,
     fontSize: 14,
-    lineHeight: 18,
-    color: Colors.neutral900,
-  },
-  normalPrice: {
-    fontFamily: Fonts.Medium,
-    fontSize: 14,
-    lineHeight: 18,
     color: Colors.neutral500,
-    textDecorationLine: 'line-through',
-  },
-  discountContainer: {
-    paddingVertical: 2,
-    paddingHorizontal: 4,
-    borderWidth: 1,
-    borderColor: Colors.danger200,
-    backgroundColor: Colors.danger50,
-    borderRadius: 4,
-  },
-  discountText: {
-    fontFamily: Fonts.SemiBold,
-    fontSize: 12,
-    lineHeight: 16,
-    color: Colors.danger500,
-  },
-  normalPriceWithoutDisc: {
-    fontFamily: Fonts.SemiBold,
-    fontSize: 14,
-    lineHeight: 18,
-    color: Colors.neutral900,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });
 

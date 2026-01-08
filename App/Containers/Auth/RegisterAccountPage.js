@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
@@ -20,14 +21,20 @@ import { Fonts } from '../../Theme/Fonts';
 
 //components
 import TextInputComponent from '../../Components/TextInputComponent';
+import ErrorModal from '../../Components/ErrorModal';
 
 const RegisterAccountPage = props => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  const { registerResponse, registerSpinner, errorModal } = useSelector(
+    state => state.register,
+  );
   const selectedAccountType = props?.route?.params?.selectedAccount;
   const [fullname, setFullname] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleRegister = async () => {
     const payload = {
@@ -36,13 +43,21 @@ const RegisterAccountPage = props => {
       password: password,
       username: fullname,
     };
-    await dispatch(ActionStudent.PostRegister(payload));
-    navigation.navigate('RegisterCompleteDataPage', {
-      selectedAccountType,
-      fullname,
-      email,
-      password,
-    });
+    const result = await dispatch(ActionStudent.PostRegister(payload));
+    console.log(result, 'RESPONSE')
+    if (result.status === 201) {
+      const data = {
+        selectedAccountType: selectedAccountType,
+        fullname: fullname,
+        email: email,
+        password: password,
+        registerResponse: result,
+      };
+      navigation.navigate('RegisterOTPPage', { data });
+    } else {
+      setShowErrorModal(true);
+      setErrorMessage(result.data.message);
+    }
   };
 
   return (
@@ -92,8 +107,13 @@ const RegisterAccountPage = props => {
           onPress={() => {
             handleRegister();
           }}
+          disabled={registerSpinner}
         >
-          <Text style={styles.registerText}>Daftar</Text>
+          {registerSpinner ? (
+            <ActivityIndicator size="small" color={Colors.white} />
+          ) : (
+            <Text style={styles.registerText}>Daftar</Text>
+          )}
         </TouchableOpacity>
         <View style={styles.orContainer}>
           <View style={styles.line} />
@@ -129,6 +149,14 @@ const RegisterAccountPage = props => {
           Ketentuan Tembus.in termasuk Penggunaan Cookie.
         </Text>
       </View>
+      <ErrorModal
+        visible={showErrorModal}
+        description={errorMessage}
+        onClose={() => {
+          setShowErrorModal(false);
+          setErrorMessage('');
+        }}
+      />
     </View>
   );
 };

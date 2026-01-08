@@ -183,9 +183,11 @@ export const GetComments = (postId, payload, token) => {
       dispatch({
         type: ActionTypes.GET_COMMENTS_SUCCESS,
         payload: {
-          comments: comments.data, // ARRAY untuk reducer
+          comments: comments, // ARRAY untuk reducer
         },
       });
+
+      return comments
     } catch (error) {
       console.error('--- GET_COMMENTS_FAILED ---');
       console.error('ERROR MESSAGE:', error.message);
