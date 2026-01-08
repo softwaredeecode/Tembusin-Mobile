@@ -20,3 +20,7 @@ export const MATERIAL = {
   myMaterialCollection: '/student/my-materials/paginated',
   materialCollectionDetail: '/student/material-collections'
 }
+
+export const PRODUCT = {
+  productList: '/student/products'
+}

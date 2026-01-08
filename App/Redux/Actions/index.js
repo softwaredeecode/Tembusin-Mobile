@@ -16,6 +16,7 @@ import {
   AddComments,
   AddPost,
 } from './Forum';
+import { GetProductList } from './Product';
 
 export const ActionStudent = {
   PostRegister,
@@ -30,4 +31,5 @@ export const ActionStudent = {
   GetMaterialCollectionData,
   GetMyMaterialCollectionData,
   GetMaterialCollectionDetailData,
+  GetProductList,
 };
