@@ -25,12 +25,13 @@ import { Fonts } from '../../Theme/Fonts';
 // components
 import AuthenticatedHeader from '../../Components/AuthenticatedHeader';
 import ForumCardComponent from '../../Components/ForumCardComponent';
+import ListEmptyComponent from '../../Components/ListEmptyComponents';
 
 const ForumPage = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
 
-  const { latestForumData, trendingForumData } = useSelector(
+  const { latestForumData, trendingForumData, forumSpinner } = useSelector(
     state => state.forum,
   );
 
@@ -180,6 +181,17 @@ const ForumPage = () => {
             initialNumToRender={5}
             maxToRenderPerBatch={5}
             windowSize={5}
+            ListEmptyComponent={
+              !forumSpinner ? (
+                <ListEmptyComponent
+                  title={'Belum ada postingan yang tersedia'}
+                  desc={
+                    'Postingan belum tersedia untuk saat ini. Silakan cek kembali di lain waktu'
+                  }
+                  iconName={'message'}
+                />
+              ) : null
+            }
             updateCellsBatchingPeriod={50}
           />
         ) : (
@@ -194,6 +206,17 @@ const ForumPage = () => {
             initialNumToRender={5}
             maxToRenderPerBatch={5}
             windowSize={5}
+            ListEmptyComponent={
+              !forumSpinner ? (
+                <ListEmptyComponent
+                  title={'Belum ada postingan yang tersedia'}
+                  desc={
+                    'Postingan belum tersedia untuk saat ini. Silakan cek kembali di lain waktu'
+                  }
+                  iconName={'message'}
+                />
+              ) : null
+            }
             updateCellsBatchingPeriod={50}
           />
         )}
@@ -260,8 +283,8 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    right: 20,
-    bottom: 100,
+    right: 16,
+    bottom: 12,
     backgroundColor: Colors.warning500,
     width: 44,
     height: 44,

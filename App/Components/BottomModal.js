@@ -6,7 +6,8 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
-  StyleSheet
+  StyleSheet,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
@@ -16,7 +17,14 @@ import { Fonts } from '../Theme/Fonts';
 
 const screenHeight = Dimensions.get('window').height;
 
-const BottomModal = ({ visible, onClose, title, children, enableScroll = true }) => {
+const BottomModal = ({
+  visible,
+  onClose,
+  title,
+  children,
+  enableScroll = true,
+  withHeader = true,
+}) => {
   return (
     <Modal
       visible={visible}
@@ -24,28 +32,31 @@ const BottomModal = ({ visible, onClose, title, children, enableScroll = true })
       animationType="slide"
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
-        <View style={styles.modalContainer}>
-          
-          {/* HEADER */}
-          <View style={styles.header}>
-            <Text style={styles.title}>{title}</Text>
+      <TouchableWithoutFeedback onPress={onClose}>
+        <View style={styles.overlay}>
+          <View style={styles.modalContainer}>
+            {/* HEADER */}
+            {withHeader && (
+              <View style={styles.header}>
+                <Text style={styles.title}>{title}</Text>
 
-            <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={18} color={Colors.neutral900} />
-            </TouchableOpacity>
+                <TouchableOpacity onPress={onClose}>
+                  <Ionicons name="close" size={18} color={Colors.neutral900} />
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* BODY */}
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.scrollContent}
+              scrollEnabled={enableScroll}
+            >
+              {children}
+            </ScrollView>
           </View>
-
-          {/* BODY */}
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
-            scrollEnabled={enableScroll}
-          >
-            {children}
-          </ScrollView>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };
@@ -83,7 +94,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     fontFamily: Fonts.Medium,
-    color: Colors.neutral900
+    color: Colors.neutral900,
   },
 
   scrollContent: {

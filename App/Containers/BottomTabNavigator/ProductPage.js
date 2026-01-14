@@ -467,7 +467,7 @@ const styles = StyleSheet.create({
   productContainer: {
     paddingHorizontal: 16,
     paddingTop: 4,
-    paddingBottom: SCREEN_HEIGHT * 0.4,
+    paddingBottom: SCREEN_HEIGHT * 0.3,
   },
   comingSoonContainer: {
     flex: 0.5,

@@ -56,6 +56,10 @@ const MaterialCardComponent = ({ item }) => {
 
   const handleOnPress = item => {
     if (!item.is_purchased) {
+      navigation.navigate('PurchaseMaterialDetailPage', {
+        materialCollectionId: item.id,
+      });
+    } else {
       navigation.navigate('MaterialDetailPage', {
         materialCollectionId: item.id,
       });
@@ -136,17 +140,10 @@ const MaterialCardComponent = ({ item }) => {
                 color={Colors.neutral500}
               />
             </View>
-            <RenderHtml
-              contentWidth={width}
-              source={{ html: item.description }}
-              tagsStyles={{
-                b: { fontWeight: 'bold' },
-              }}
-              baseStyle={styles.materialDateText}
-            />
+            <Text style={styles.materialDateText}>{item.description}</Text>
           </View>
         )}
-        {item?.seperateBuy && (
+        {(item?.access_type?.id == 1 || item?.access_type?.id == 3) && (!item?.is_purchased) && (
           <View style={styles.seperateBuyContainer}>
             <Ionicons name={'checkmark'} size={14} color={Colors.success500} />
             <Text style={styles.seperateBuyText}>Dapat dibeli terpisah</Text>
@@ -293,6 +290,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
     color: Colors.neutral500,
+    flexShrink: 1,
   },
   materialDescContainer: {
     flexDirection: 'row',

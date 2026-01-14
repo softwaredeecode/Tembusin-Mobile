@@ -38,11 +38,9 @@ const MainHeader = ({
       )}
 
       {/* TITLE */}
-      {title !== '' && (
-        <View style={styles.headerTextContainer}>
-          <Text style={styles.headerText}>{title}</Text>
-        </View>
-      )}
+      <View style={styles.headerTextContainer}>
+        <Text style={styles.headerText}>{title}</Text>
+      </View>
 
       {/* RIGHT */}
       <View style={styles.rightContainer}>
@@ -62,6 +60,7 @@ const styles = StyleSheet.create({
     paddingRight: 16,
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
   },
   backButton: {
     width: 36,
@@ -74,8 +73,9 @@ const styles = StyleSheet.create({
     height: 36,
   },
   headerTextContainer: {
-    alignItems: 'center',
+    flex: 1,
   },
+
   headerText: {
     fontFamily: Fonts.Medium,
     fontSize: 14,
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     color: Colors.neutral900,
   },
   rightContainer: {
-    flex: 1,
+    // flex: 1,
     justifyContent: 'center',
     alignItems: 'flex-end',
   },

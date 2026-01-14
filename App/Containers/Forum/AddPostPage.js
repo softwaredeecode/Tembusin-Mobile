@@ -121,7 +121,7 @@ const AddPostPage = () => {
             <View style={styles.row}>
               <View style={styles.profileInitialContainer}>
                 <Text style={styles.initialText}>
-                  {getInitial(userData?.username)}
+                  {getInitial(userData?.full_name)}
                 </Text>
               </View>
 

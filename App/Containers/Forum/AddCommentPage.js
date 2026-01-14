@@ -123,14 +123,14 @@ const AddCommentPage = props => {
             <Text style={styles.commentsTitleText}>
               Komentar ke{' '}
               <Text style={styles.nameText}>
-                {forumDetailData.user.username}
+                {forumDetailData.user.full_name}
               </Text>
             </Text>
           </View>
           <View style={styles.row}>
             <View style={styles.profileInitialContainer}>
               <Text style={styles.initialText}>
-                {getInitial(userData?.username)}
+                {getInitial(userData?.full_name)}
               </Text>
             </View>
             <TextInput

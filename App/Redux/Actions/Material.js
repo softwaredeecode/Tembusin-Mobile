@@ -131,7 +131,10 @@ export const GetMyMaterialCollectionData = (token, params = {}) => {
   };
 };
 
-export const GetMaterialCollectionDetailData = (token, materialCollectionId) => {
+export const GetMaterialCollectionDetailData = (
+  token,
+  materialCollectionId,
+) => {
   return async dispatch => {
     dispatch({ type: ActionTypes.GET_MATERIAL_COLLECTION_DETAIL_DATA_REQUEST });
 
@@ -143,7 +146,6 @@ export const GetMaterialCollectionDetailData = (token, materialCollectionId) => 
     }, 15000);
 
     try {
-
       const baseUrl = `${BASE_URL}${MATERIAL.materialCollectionDetail}/${materialCollectionId}`;
 
       console.log('--- GET_MATERIAL_COLLECTION_DETAIL_DATA_REQUEST ---');
@@ -184,6 +186,122 @@ export const GetMaterialCollectionDetailData = (token, materialCollectionId) => 
     } catch (error) {
       dispatch({
         type: ActionTypes.GET_MATERIAL_COLLECTION_DETAIL_DATA_FAILED,
+        error: error.message,
+      });
+    }
+  };
+};
+
+export const PurchaseMaterialCollection = async (
+  token,
+  materialCollectionId,
+  price,
+) => {
+  const controller = new AbortController();
+  const { signal } = controller;
+
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, 15000);
+
+  try {
+    const baseUrl = `${BASE_URL}${MATERIAL.buyMaterial}/${materialCollectionId}/purchase`;
+
+    console.log('--- PURCHASE_MATERIAL_COLLECTION_REQUEST ---');
+    console.log('URL:', baseUrl);
+
+    const response = await fetch(baseUrl, {
+      method: 'POST',
+      signal,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        material_collection_id: materialCollectionId,
+        price: price,
+      }),
+    });
+
+    clearTimeout(timeoutId);
+
+    const body = await response.json();
+
+    const result = {
+      status: response.status,
+      ok: response.ok,
+      data: body,
+    };
+
+    console.log('Response Body:', result);
+    console.log('--- END REQUEST ---');
+
+    return result;
+  } catch (error) {
+    clearTimeout(timeoutId);
+
+    return {
+      ok: false,
+      error: error.name === 'AbortError' ? 'Request timeout' : error.message,
+    };
+  }
+};
+
+export const GetMaterialDetailData = (
+  token,
+  materialId,
+) => {
+  return async dispatch => {
+    dispatch({ type: ActionTypes.GET_MATERIAL_DETAIL_DATA_REQUEST });
+
+    const controller = new AbortController();
+    const { signal } = controller;
+
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, 15000);
+
+    try {
+      const baseUrl = `${BASE_URL}${MATERIAL.materialDetail}/${materialId}`;
+
+      console.log('--- GET_MATERIAL_DETAIL_DATA_REQUEST ---');
+      console.log('URL:', baseUrl);
+
+      const response = await fetch(baseUrl, {
+        method: 'GET',
+        signal,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      clearTimeout(timeoutId);
+
+      const body = await response.json();
+
+      const materialDetailData = {
+        status: response.status,
+        ok: response.ok,
+        data: body,
+      };
+
+      console.log('Response Body:', materialDetailData);
+      console.log('--- END REQUEST ---');
+
+      if (!response.ok) {
+        return dispatch({
+          type: ActionTypes.GET_MATERIAL_DETAIL_DATA_FAILED,
+          payload: materialDetailData,
+        });
+      }
+
+      dispatch({
+        type: ActionTypes.GET_MATERIAL_DETAIL_DATA_SUCCESS,
+        payload: materialDetailData,
+      });
+    } catch (error) {
+      dispatch({
+        type: ActionTypes.GET_MATERIAL_DETAIL_DATA_FAILED,
         error: error.message,
       });
     }

@@ -111,12 +111,12 @@ const HomePage = () => {
       <View style={styles.headerContainer}>
         <View style={styles.profileInitialContainer}>
           <Text style={styles.initialText}>
-            {getInitial(userData?.username)}
+            {getInitial(userData?.full_name)}
           </Text>
         </View>
         <View style={styles.userDataContainer}>
           <View style={styles.row}>
-            <Text style={styles.profileNameText}>{userData?.username}</Text>
+            <Text style={styles.profileNameText}>{userData?.full_name}</Text>
             <View style={styles.iconNameContainer}>
               <MaterialCommunityIcons
                 name="crown-outline"

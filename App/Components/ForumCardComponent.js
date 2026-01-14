@@ -48,13 +48,13 @@ const ForumCardComponent = React.memo(({ item, navigation }) => {
         <View style={styles.postHeader}>
           <View style={styles.profileInitialContainer}>
             <Text style={styles.initialText}>
-              {getInitial(item?.user?.username)}
+              {getInitial(item?.user?.full_name)}
             </Text>
           </View>
           <View style={styles.userPostData}>
             <View style={styles.row}>
               <Text style={styles.postedUsernameText}>
-                {item?.user?.username}
+                {item?.user?.full_name}
               </Text>
               {/* {item?.status !== 'customer' && (
                   <View style={styles.iconNameContainer}>

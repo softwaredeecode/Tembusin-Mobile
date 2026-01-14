@@ -8,6 +8,7 @@ const initialState = {
   },
   myMaterialCollectionData: [],
   materialCollectionDetailData: {},
+  materialDetailData: {},
   materialSpinner: false,
   errorModal: false,
 };
@@ -105,6 +106,28 @@ export const MaterialReducer = (state = initialState, action) => {
       };
     }
     case actionTypes.GET_MATERIAL_COLLECTION_DETAIL_DATA_FAILED:
+      return {
+        ...state,
+        materialSpinner: false,
+        errorModal: true,
+      };
+
+    // ============= GET_MATERIAL_DETAIL_DATA ===================
+    case actionTypes.GET_MATERIAL_DETAIL_DATA_REQUEST:
+      return {
+        ...state,
+        materialSpinner: true,
+        errorModal: false,
+      };
+    case actionTypes.GET_MATERIAL_DETAIL_DATA_SUCCESS: {
+      return {
+        ...state,
+        materialSpinner: true,
+        materialDetailData: action.payload,
+        errorModal: false,
+      };
+    }
+    case actionTypes.GET_MATERIAL_DETAIL_DATA_FAILED:
       return {
         ...state,
         materialSpinner: false,
