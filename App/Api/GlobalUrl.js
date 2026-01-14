@@ -18,7 +18,9 @@ export const FORUM = {
 export const MATERIAL = {
   materialCollection: '/student/material-collections/paginated',
   myMaterialCollection: '/student/my-materials/paginated',
-  materialCollectionDetail: '/student/material-collections'
+  materialCollectionDetail: '/student/material-collections',
+  buyMaterial: '/student/material-collections',
+  materialDetail: '/student/materials',
 }
 
 export const PRODUCT = {

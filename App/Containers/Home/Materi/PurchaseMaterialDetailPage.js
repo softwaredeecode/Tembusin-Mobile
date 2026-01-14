@@ -30,19 +30,45 @@ import { ActionStudent } from '../../../Redux/Actions';
 //helper
 import { formatDateMaterial } from '../../../Utils/Helper';
 
-const MaterialDetailPage = props => {
+//API
+import { BASE_URL, MATERIAL } from '../../../Api/GlobalUrl';
+
+const PurchaseMaterialDetailPage = props => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const materialCollectionId = props?.route?.params?.materialCollectionId;
 
-  const { materialCollectionDetailData } = useSelector(state => state.material);
+  const { materialCollectionDetailData, materialSpinner } = useSelector(
+    state => state.material,
+  );
   const [expanded, setExpanded] = useState({});
+  const [showBuyWithTokenModal, setShowBuyWithTokenModal] = useState(false);
+  const [loadingBuyMaterial, setLoadingBuyMaterial] = useState(false);
+  const myToken = 50;
+  const accessId = materialCollectionDetailData?.data?.access_type?.id ?? null;
+  const canBuyWithToken = accessId === 1 || accessId === 3;
+  const canJoinMember = accessId === 1 || accessId === 2;
+  const canTakeFree = accessId === 4;
 
   const toggleExpand = key => {
     setExpanded(prev => ({
       ...prev,
       [key]: !prev[key],
     }));
+  };
+
+  const handlePurchaseMaterialCollection = async () => {
+    setLoadingBuyMaterial(true);
+    const token = await AsyncStorage.getItem('auth_token');
+    const response = await dispatch(
+      ActionStudent.PurchaseMaterialCollection(
+        token,
+        materialCollectionId,
+        materialCollectionDetailData.data.price_token,
+      ),
+    );
+    setLoadingBuyMaterial(false);
+    setShowBuyWithTokenModal(false);
   };
 
   useEffect(() => {
@@ -157,37 +183,19 @@ const MaterialDetailPage = props => {
                                   <View
                                     key={material.id}
                                     style={[
-                                      styles.categoryDetailButtonContainer,
+                                      styles.materialChaterDetailContainer,
                                       styles.chapterContainer,
-                                      { marginRight: 13 },
                                     ]}
                                   >
-                                    <View
-                                      style={
-                                        styles.materialChaterDetailContainer
-                                      }
-                                    >
-                                      <View style={styles.folderContainer}>
-                                        <Ionicons
-                                          name={'menu-outline'}
-                                          size={14}
-                                          color={Colors.neutral500}
-                                        />
-                                      </View>
-                                      <Text style={styles.categoryTitleText}>
-                                        {material.material_name}
-                                      </Text>
+                                    <View style={styles.folderContainer}>
+                                      <Ionicons
+                                        name={'menu-outline'}
+                                        size={14}
+                                        color={Colors.neutral500}
+                                      />
                                     </View>
-                                    <Text
-                                      style={
-                                        material.is_read === true
-                                          ? styles.percentageMaterialText
-                                          : styles.negativePercentageMaterialText
-                                      }
-                                    >
-                                      {material.is_read === true
-                                        ? '100%'
-                                        : '0%'}
+                                    <Text style={styles.categoryTitleText}>
+                                      {material.material_name}
                                     </Text>
                                   </View>
                                 ))}
@@ -212,28 +220,7 @@ const MaterialDetailPage = props => {
         barStyle="dark-content"
       />
 
-      <MainHeader
-        title={'Detail Materi'}
-        rightComponent={
-          <View style={[styles.row, { gap: 6, marginTop: 0 }]}>
-            <AnimatedCircularProgress
-              size={24}
-              width={4}
-              fill={
-                materialCollectionDetailData.data.statistics.progress_percentage
-              }
-              tintColor={Colors.warning500}
-              backgroundColor={Colors.neutral200}
-              rotation={180}
-              lineCap="round"
-            ></AnimatedCircularProgress>
-            <Text style={styles.progressText}>
-              {materialCollectionDetailData.data.statistics.progress_percentage}
-              %
-            </Text>
-          </View>
-        }
-      />
+      <MainHeader title={'Detail Materi'} />
       <ScrollView contentContainerStyle={{ paddingBottom: 140 }}>
         <View style={styles.headerContainer}>
           <Image
@@ -296,6 +283,28 @@ const MaterialDetailPage = props => {
               </Text>
             </View>
           </View>
+          <View></View>
+          {(materialCollectionDetailData.data.access_type.id == 1 ||
+            materialCollectionDetailData.data.access_type.id == 3) && (
+            <View style={styles.showTokenPriceContainer}>
+              <View style={styles.seperateBuyContainer}>
+                <Ionicons
+                  name={'checkmark'}
+                  size={14}
+                  color={Colors.success500}
+                />
+                <Text style={styles.seperateBuyText}>
+                  Dapat dibeli terpisah
+                </Text>
+              </View>
+              <View style={[styles.row, { gap: 6 }]}>
+                <FontAwesome name="money" size={16} color={Colors.warning500} />
+                <Text style={bottomSheetModalStyles.priceToken}>
+                  {materialCollectionDetailData.data.price_token}
+                </Text>
+              </View>
+            </View>
+          )}
         </View>
         <View style={styles.badgeContainer}>
           {materialCollectionDetailData.data.statistics?.total_categories >
@@ -347,35 +356,203 @@ const MaterialDetailPage = props => {
             </Text>
           )} */}
         <View style={styles.buttonContainer}>
-          {materialCollectionDetailData.data.has_downloaded && (
+          {canBuyWithToken && (
             <TouchableOpacity
-              onPress={() => {}}
-              style={styles.downloadButtonContainer}
+              onPress={() => setShowBuyWithTokenModal(true)}
+              style={styles.buyWithTokenContainer}
             >
-              <MaterialCommunityIcons
-                name={'download'}
-                size={20}
-                color={Colors.neutral500}
-              />
+              <Text style={styles.buyWithTokenText}>Beli Dengan Token</Text>
             </TouchableOpacity>
           )}
-          <TouchableOpacity
-            onPress={() => {
-              navigation.replace('StartMaterialPage', {
-                materialCollectionDetailData: materialCollectionDetailData,
-              });
-            }}
-            style={styles.joinMemberContainer}
-          >
-            <Text style={styles.joinMemberText}>Mulai</Text>
-          </TouchableOpacity>
+
+          {canJoinMember && (
+            <TouchableOpacity
+              onPress={() => {}}
+              style={styles.joinMemberContainer}
+            >
+              <Text style={styles.joinMemberText}>Gabung Member</Text>
+            </TouchableOpacity>
+          )}
+
+          {canTakeFree && (
+            <TouchableOpacity
+              onPress={() => {}}
+              style={styles.joinMemberContainer}
+            >
+              <Text style={styles.joinMemberText}>Ambil</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
+      <BottomModal
+        visible={showBuyWithTokenModal}
+        onClose={() => setShowBuyWithTokenModal(false)}
+        title="Beli materi"
+        enableScroll={false}
+      >
+        <View style={bottomSheetModalStyles.rowContainer}>
+          <View style={bottomSheetModalStyles.fileIconContainer}>
+            <MaterialCommunityIcons
+              name="book-open-blank-variant"
+              size={24}
+              color={Colors.product900}
+            />
+          </View>
+          <View style={styles.categoryContainer}>
+            <Text style={styles.categoryText}>
+              {materialCollectionDetailData.data.category.category_name}
+            </Text>
+          </View>
+        </View>
+        <View style={bottomSheetModalStyles.titleContainer}>
+          <Text style={styles.titleText}>
+            {materialCollectionDetailData.data.material_collection_name}
+          </Text>
+        </View>
+        <View style={[styles.row]}>
+          <View style={styles.iconContainer}>
+            <MaterialCommunityIcons
+              name={'calendar-blank'}
+              size={14}
+              color={Colors.neutral500}
+            />
+          </View>
+          <Text style={styles.detailText}>
+            Akses{' '}
+            {formatDateMaterial(materialCollectionDetailData.data.start_time)} -{' '}
+            {formatDateMaterial(materialCollectionDetailData.data.end_time)}
+          </Text>
+        </View>
+        <View style={[styles.row]}>
+          <View style={styles.iconContainer}>
+            <MaterialCommunityIcons
+              name={'crown-outline'}
+              size={14}
+              color={Colors.neutral500}
+            />
+          </View>
+          <Text style={styles.detailText}>
+            {materialCollectionDetailData.data.description}
+          </Text>
+        </View>
+        <View style={[styles.row]}>
+          <View style={styles.iconContainer}>
+            <MaterialCommunityIcons
+              name={'download'}
+              size={14}
+              color={Colors.neutral500}
+            />
+          </View>
+          <Text style={styles.detailText}>
+            {materialCollectionDetailData.data.download_flag
+              ? 'Materi dapat diunduh'
+              : 'Materi tidak dapat diunduh'}
+          </Text>
+        </View>
+        <View style={bottomSheetModalStyles.badgeContainerBottomModal}>
+          {materialCollectionDetailData.data.statistics?.total_categories >
+            0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>
+                {materialCollectionDetailData.data.statistics?.total_categories}{' '}
+                Jenjang
+              </Text>
+            </View>
+          )}
+          {materialCollectionDetailData.data.statistics?.total_chapters > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>
+                {materialCollectionDetailData.data.statistics?.total_chapters}{' '}
+                Bab
+              </Text>
+            </View>
+          )}
+          {materialCollectionDetailData.data.statistics?.total_subchapters >
+            0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>
+                {
+                  materialCollectionDetailData.data.statistics
+                    ?.total_subchapters
+                }{' '}
+                Sub-bab
+              </Text>
+            </View>
+          )}
+          {materialCollectionDetailData.data.statistics?.total_materials >
+            0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>
+                {materialCollectionDetailData.data.statistics?.total_materials}{' '}
+                Materi
+              </Text>
+            </View>
+          )}
+        </View>
+        <View style={bottomSheetModalStyles.tokenTotalContainer}>
+          <View style={bottomSheetModalStyles.tokenTotalChildContainer}>
+            <Text style={bottomSheetModalStyles.tokenTotalTitleText}>
+              Harga Materi
+            </Text>
+            <View style={[styles.row, { gap: 6 }]}>
+              <FontAwesome name="money" size={16} color={Colors.warning500} />
+              <Text style={bottomSheetModalStyles.priceToken}>
+                {materialCollectionDetailData.data.price_token}
+              </Text>
+            </View>
+          </View>
+          <View style={bottomSheetModalStyles.tokenTotalChildContainer}>
+            <Text style={bottomSheetModalStyles.tokenTotalTitleText}>
+              Token saya
+            </Text>
+            <View style={[styles.row, { gap: 6 }]}>
+              <FontAwesome
+                name="money"
+                size={13}
+                color={
+                  myToken >= materialCollectionDetailData.data.price_token
+                    ? Colors.neutral400
+                    : Colors.danger500
+                }
+              />
+              <Text
+                style={
+                  myToken >= materialCollectionDetailData.data.price_token
+                    ? bottomSheetModalStyles.myTokenText
+                    : bottomSheetModalStyles.dangerMyTokenText
+                }
+              >
+                {myToken}
+              </Text>
+            </View>
+          </View>
+        </View>
+        <View style={bottomSheetModalStyles.buttonContainer}>
+          {myToken >= materialCollectionDetailData.data.price_token ? (
+            <TouchableOpacity
+              onPress={() => {
+                handlePurchaseMaterialCollection();
+              }}
+              style={bottomSheetModalStyles.buyButtonContainer}
+            >
+              <Text style={bottomSheetModalStyles.buyButtonText}>Beli</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={bottomSheetModalStyles.topUpButtonContainer}
+            >
+              <Text style={bottomSheetModalStyles.topUpButtonText}>
+                Isi Token
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </BottomModal>
     </View>
   );
 };
 
-export default MaterialDetailPage;
+export default PurchaseMaterialDetailPage;
 
 const styles = StyleSheet.create({
   container: {
@@ -400,12 +577,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 10,
-  },
-  progressText: {
-    fontFamily: Fonts.Medium,
-    fontSize: 14,
-    lineHeight: 20,
-    color: Colors.neutral500,
   },
   titleText: {
     fontFamily: Fonts.Medium,
@@ -504,19 +675,10 @@ const styles = StyleSheet.create({
   materialChaterDetailContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    borderBottomColor: Colors.neutral200,
+    borderBottomWidth: 1,
+    paddingVertical: 10,
     gap: 8,
-  },
-  percentageMaterialText: {
-    fontFamily: Fonts.Medium,
-    fontSize: 12,
-    lineHeight: 16,
-    color: Colors.success500,
-  },
-  negativePercentageMaterialText: {
-    fontFamily: Fonts.Medium,
-    fontSize: 12,
-    lineHeight: 16,
-    color: Colors.danger500,
   },
   bottomComponent: {
     position: 'absolute',
@@ -540,6 +702,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+  },
+  buyWithTokenContainer: {
+    marginTop: 12,
+    padding: 10,
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: Colors.neutral200,
+    borderRadius: 8,
+    alignItems: 'center',
+    flex: 1,
+  },
+  buyWithTokenText: {
+    fontFamily: Fonts.Medium,
+    fontSize: 14,
+    lineHeight: 20,
+    color: Colors.neutral900,
   },
   joinMemberContainer: {
     marginTop: 12,
@@ -587,5 +765,123 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+});
+
+const bottomSheetModalStyles = StyleSheet.create({
+  rowContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  fileIconContainer: {
+    padding: 8,
+    borderWidth: 1,
+    borderRadius: 6,
+    borderColor: Colors.product200,
+    backgroundColor: Colors.product50,
+  },
+  titleContainer: {
+    marginTop: 12,
+  },
+  countContainer: {
+    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.neutral200,
+  },
+  countChildContainer: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderWidth: 1,
+    borderRadius: 6,
+    borderColor: Colors.neutral200,
+  },
+  countText: {
+    fontFamily: Fonts.Medium,
+    fontSize: 12,
+    lineHeight: 18,
+    color: Colors.neutral900,
+  },
+  tokenTotalContainer: {
+    paddingTop: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.neutral200,
+    gap: 10,
+  },
+  tokenTotalChildContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  tokenTotalTitleText: {
+    fontFamily: Fonts.Medium,
+    fontSize: 14,
+    lineHeight: 18,
+    color: Colors.neutral900,
+  },
+  myTokenText: {
+    fontFamily: Fonts.SemiBold,
+    fontSize: 14,
+    lineHeight: 18,
+    color: Colors.neutral400,
+  },
+  dangerMyTokenText: {
+    fontFamily: Fonts.SemiBold,
+    fontSize: 14,
+    lineHeight: 18,
+    color: Colors.danger500,
+  },
+  buttonContainer: {
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+  },
+  buyButtonContainer: {
+    paddingVertical: 10,
+    backgroundColor: Colors.product900,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  buyButtonText: {
+    fontFamily: Fonts.Medium,
+    fontSize: 14,
+    lineHeight: 20,
+    color: Colors.white,
+  },
+  topUpButtonContainer: {
+    paddingVertical: 10,
+    backgroundColor: Colors.white,
+    alignItems: 'center',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.neutral200,
+  },
+  topUpButtonText: {
+    fontFamily: Fonts.Medium,
+    fontSize: 14,
+    lineHeight: 20,
+    color: Colors.neutral900,
+  },
+  badgeContainerBottomModal: {
+    flexDirection: 'row',
+    gap: 6,
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.neutral200,
+  },
+  rowBottomModal: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  priceToken: {
+    fontFamily: Fonts.SemiBold,
+    fontSize: 20,
+    lineHeight: 24,
+    color: Colors.neutral900,
   },
 });

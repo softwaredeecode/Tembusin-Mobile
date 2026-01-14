@@ -8,6 +8,8 @@ import {
   GetMaterialCollectionData,
   GetMyMaterialCollectionData,
   GetMaterialCollectionDetailData,
+  PurchaseMaterialCollection,
+  GetMaterialDetailData,
 } from './Material';
 import {
   GetLatestForumData,
@@ -31,5 +33,7 @@ export const ActionStudent = {
   GetMaterialCollectionData,
   GetMyMaterialCollectionData,
   GetMaterialCollectionDetailData,
+  PurchaseMaterialCollection,
+  GetMaterialDetailData,
   GetProductList,
 };
