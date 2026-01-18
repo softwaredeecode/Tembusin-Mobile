@@ -6,7 +6,11 @@ const initialState = {
     total_pages: 0,
     total_items: 0,
   },
-  myMaterialCollectionData: [],
+  myMaterialCollectionData: {
+    data: [],
+    total_pages: 0,
+    total_items: 0,
+  },
   materialCollectionDetailData: {},
   materialDetailData: {},
   materialSpinner: false,

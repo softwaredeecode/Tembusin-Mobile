@@ -239,23 +239,28 @@ const PurchaseMaterialDetailPage = props => {
                 </Text>
               </View>
             </View>
-            <View style={[styles.row]}>
-              <View style={styles.iconContainer}>
-                <MaterialCommunityIcons
-                  name={'calendar-blank'}
-                  size={14}
-                  color={Colors.neutral500}
-                />
+            {materialCollectionDetailData.data.start_time && (
+              <View style={[styles.row]}>
+                <View style={styles.iconContainer}>
+                  <MaterialCommunityIcons
+                    name={'calendar-blank'}
+                    size={14}
+                    color={Colors.neutral500}
+                  />
+                </View>
+                <Text style={styles.detailText}>
+                  Akses{' '}
+                  {formatDateMaterial(
+                    materialCollectionDetailData.data.start_time,
+                  )}{' '}
+                  {materialCollectionDetailData.data.end_time
+                    ? `- ${formatDateMaterial(
+                        materialCollectionDetailData.data.end_time,
+                      )}`
+                    : ''}
+                </Text>
               </View>
-              <Text style={styles.detailText}>
-                Akses{' '}
-                {formatDateMaterial(
-                  materialCollectionDetailData.data.start_time,
-                )}{' '}
-                -{' '}
-                {formatDateMaterial(materialCollectionDetailData.data.end_time)}
-              </Text>
-            </View>
+            )}
             <View style={[styles.row]}>
               <View style={styles.iconContainer}>
                 <MaterialCommunityIcons

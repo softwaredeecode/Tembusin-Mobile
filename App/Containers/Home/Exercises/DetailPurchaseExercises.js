@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,8 @@ import RenderHtml from 'react-native-render-html';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // components
 import MainHeader from '../../../Components/MainHeader';
@@ -22,26 +23,48 @@ import BottomModal from '../../../Components/BottomModal';
 //theme
 import { Colors } from '../../../Theme/Colors';
 import { Fonts } from '../../../Theme/Fonts';
-import { clearErrors } from 'react-native/types_generated/Libraries/LogBox/Data/LogBoxData';
+
+// redux
+import { useSelector, useDispatch } from 'react-redux';
+import { ActionStudent } from '../../../Redux/Actions';
+
+//helper
+import { formatDateMaterial } from '../../../Utils/Helper';
 
 const DetailPurchaseExercises = props => {
   const { width } = useWindowDimensions();
   const navigation = useNavigation();
-  const params = props.route.params;
-  const selectedItem = params.selectedItem;
-  const buyDesc =
-    selectedItem?.payMethod == 'member'
-      ? 'Beli paket <b>SNBT Juara</b> dan akses sebagai member.'
-      : selectedItem?.payMethod == 'token'
-      ? 'Beli paket <b>SNBT Juara</b> dan akses sebagai member, atau beli terpisah dengan <b>15 token.</b>'
-      : '';
-  const isSeperateBuy = selectedItem.seperateBuy;
-  const isFree = selectedItem.payMethod === 'free';
-  const isTokenPayment =
-    selectedItem.payMethod === 'token' && selectedItem.tokenPrice > 0;
-  const shouldRender = isSeperateBuy || isTokenPayment;
+  const dispatch = useDispatch();
+  const { exercisesSetDetailData, exercisesSpinner } = useSelector(
+    state => state.exercises,
+  );
+  const exercisesSetId = props?.route?.params?.exercisesSetId;
   const [showBuyWithTokenModal, setShowBuyWithTokenModal] = useState(false);
   const myToken = 50;
+
+  useFocusEffect(
+    useCallback(() => {
+      const initializeData = async () => {
+        const token = await AsyncStorage.getItem('auth_token');
+
+        dispatch(
+          ActionStudent.GetExercisesSetDetailData(token, exercisesSetId),
+        );
+      };
+      initializeData();
+
+      return () => {};
+    }, [dispatch]),
+  );
+
+  if (!exercisesSetDetailData?.data) {
+    return (
+      <View style={styles.container}>
+        <StatusBar translucent backgroundColor={Colors.white} />
+        <MainHeader title="Detail Latihan Soal" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -53,28 +76,44 @@ const DetailPurchaseExercises = props => {
       <MainHeader title={'Detail Latihan Soal'} />
       <ScrollView style={styles.bodyContainer}>
         <View style={styles.selectedItemContainer}>
-          <Image
-            source={require('../../../Assets/Images/dummyHome.png')}
-            style={styles.image}
-            resizeMode="cover"
-          />
+          {exercisesSetDetailData.data.banner_url !== '' && (
+            <Image
+              source={{ uri: exercisesSetDetailData.data.banner_url }}
+              style={styles.image}
+              resizeMode="cover"
+            />
+          )}
           <View style={styles.titleContainer}>
-            <Text style={styles.titleText}>{selectedItem?.materialTitle}</Text>
+            <Text style={styles.titleText}>
+              {exercisesSetDetailData.data.practice_set_name}
+            </Text>
             <View style={styles.categoryContainer}>
-              <Text style={styles.categoryText}>{selectedItem?.category}</Text>
+              <Text style={styles.categoryText}>
+                {exercisesSetDetailData.data.category.category_name}
+              </Text>
             </View>
           </View>
-          <View style={styles.dateContainer}>
-            <View style={styles.dateIconContainer}>
-              <MaterialCommunityIcons
-                name={'calendar-blank'}
-                size={12}
-                color={Colors.neutral500}
-              />
+          {exercisesSetDetailData.data.start_time && (
+            <View style={styles.dateContainer}>
+              <View style={styles.dateIconContainer}>
+                <MaterialCommunityIcons
+                  name={'calendar-blank'}
+                  size={12}
+                  color={Colors.neutral500}
+                />
+              </View>
+              <Text style={styles.detailText}>
+                Akses{' '}
+                {formatDateMaterial(exercisesSetDetailData.data.start_time)}{' '}
+                {exercisesSetDetailData.data.end_time
+                  ? `- ${formatDateMaterial(
+                      exercisesSetDetailData.data.end_time,
+                    )}`
+                  : ''}
+              </Text>
             </View>
-            <Text style={styles.dateText}>{selectedItem?.date}</Text>
-          </View>
-          {selectedItem.desc !== '' && (
+          )}
+          {exercisesSetDetailData.data.description !== '' && (
             <View style={styles.descContainer}>
               <View style={styles.dateIconContainer}>
                 <MaterialCommunityIcons
@@ -83,45 +122,33 @@ const DetailPurchaseExercises = props => {
                   color={Colors.neutral500}
                 />
               </View>
-              <RenderHtml
-                contentWidth={width}
-                source={{ html: selectedItem.desc }}
-                tagsStyles={{
-                  b: { fontWeight: 'bold' },
-                }}
-                baseStyle={styles.dateText}
-              />
+              <Text style={styles.detailText}>
+                {exercisesSetDetailData.data.description}
+              </Text>
             </View>
           )}
-          {shouldRender && (
-            <View style={styles.otherContainer}>
-              {isSeperateBuy && (
-                <View style={styles.seperateBuyContainer}>
-                  <Ionicons
-                    name="checkmark"
-                    size={14}
-                    color={Colors.success500}
-                  />
-                  <Text style={styles.seperateBuyText}>
-                    Dapat dibeli terpisah
-                  </Text>
-                </View>
-              )}
-              {isTokenPayment && (
-                <View style={[styles.row, { gap: 6 }]}>
-                  <FontAwesome
-                    name="money"
-                    size={16}
-                    color={Colors.warning500}
-                  />
-                  <Text style={styles.priceToken}>
-                    {selectedItem.tokenPrice}
-                  </Text>
-                </View>
-              )}
+          {(exercisesSetDetailData.data.access_type.id == 1 ||
+            exercisesSetDetailData.data.access_type.id == 3) && (
+            <View style={styles.showTokenPriceContainer}>
+              <View style={styles.seperateBuyContainer}>
+                <Ionicons
+                  name={'checkmark'}
+                  size={14}
+                  color={Colors.success500}
+                />
+                <Text style={styles.seperateBuyText}>
+                  Dapat dibeli terpisah
+                </Text>
+              </View>
+              <View style={[styles.row, { gap: 6 }]}>
+                <FontAwesome name="money" size={16} color={Colors.warning500} />
+                <Text style={bottomSheetModalStyles.priceToken}>
+                  {exercisesSetDetailData.data.price_token}
+                </Text>
+              </View>
             </View>
           )}
-          {isFree && (
+          {exercisesSetDetailData.data.access_type.id == 4 && (
             <View style={styles.otherContainer}>
               <View style={styles.seperateBuyContainer}>
                 <Ionicons
@@ -138,7 +165,7 @@ const DetailPurchaseExercises = props => {
           )}
         </View>
         <View style={styles.countDetailContainer}>
-          <View style={[styles.countContainer, { width: width / 3.5 }]}>
+          {/* <View style={[styles.countContainer, { width: width / 3.5 }]}>
             <View style={styles.countIconContainer}>
               <MaterialCommunityIcons
                 name={'folder-outline'}
@@ -150,21 +177,24 @@ const DetailPurchaseExercises = props => {
               {selectedItem.categoryCount} Kategori
             </Text>
             <Text style={styles.countText}>Kategori</Text>
-          </View>
-          <View style={[styles.countContainer, { width: width / 3.5 }]}>
-            <View style={styles.countIconContainer}>
-              <MaterialCommunityIcons
-                name={'progress-question'}
-                size={20}
-                color={Colors.product900}
-              />
+          </View> */}
+          {exercisesSetDetailData.data.total_questions > 0 && (
+            <View style={[styles.countContainer, { width: width / 3.5 }]}>
+              <View style={styles.countIconContainer}>
+                <MaterialCommunityIcons
+                  name={'progress-question'}
+                  size={20}
+                  color={Colors.product900}
+                />
+              </View>
+              <Text style={styles.countTitleText}>
+                {exercisesSetDetailData.data.total_questions} Soal
+              </Text>
+              <Text style={styles.countText}>Jumlah Soal</Text>
             </View>
-            <Text style={styles.countTitleText}>
-              {selectedItem.question} Soal
-            </Text>
-            <Text style={styles.countText}>Jumlah Soal</Text>
-          </View>
-          <View style={[styles.countContainer, { width: width / 3.5 }]}>
+          )}
+
+          {/* <View style={[styles.countContainer, { width: width / 3.5 }]}>
             <View style={styles.countIconContainer}>
               <MaterialCommunityIcons
                 name={'alarm'}
@@ -174,20 +204,13 @@ const DetailPurchaseExercises = props => {
             </View>
             <Text style={styles.countTitleText}>{selectedItem.time} Menit</Text>
             <Text style={styles.countText}>Durasi</Text>
-          </View>
+          </View> */}
         </View>
       </ScrollView>
       <View style={styles.bottomComponent}>
-        <RenderHtml
-          contentWidth={width}
-          source={{ html: buyDesc }}
-          tagsStyles={{
-            b: { fontWeight: 'bold' },
-          }}
-          baseStyle={styles.buyDescText}
-        />
         <View style={styles.buttonContainer}>
-          {isTokenPayment && (
+          {(exercisesSetDetailData.data.access_type.id == 1 ||
+            exercisesSetDetailData.data.access_type.id == 3) && (
             <TouchableOpacity
               onPress={() => setShowBuyWithTokenModal(true)}
               style={styles.buyWithTokenContainer}
@@ -195,18 +218,22 @@ const DetailPurchaseExercises = props => {
               <Text style={styles.buyWithTokenText}>Beli Dengan Token</Text>
             </TouchableOpacity>
           )}
-          <TouchableOpacity
-            onPress={() =>
-              navigation.replace('DetailStartExercises', {
-                selectedItem: selectedItem,
-              })
-            }
-            style={styles.joinMemberContainer}
-          >
-            <Text style={styles.joinMemberText}>
-              {selectedItem.payMethod == 'free' ? 'Ambil' : 'Gabung Member'}
-            </Text>
-          </TouchableOpacity>
+          {exercisesSetDetailData.data.access_type.id != 3 && (
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate('DetailStartExercises', {
+                  // selectedItem: selectedItem,
+                })
+              }
+              style={styles.joinMemberContainer}
+            >
+              <Text style={styles.joinMemberText}>
+                {exercisesSetDetailData.data.access_type.id == 4
+                  ? 'Ambil'
+                  : 'Gabung Member'}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
       <BottomModal
@@ -224,38 +251,51 @@ const DetailPurchaseExercises = props => {
             />
           </View>
           <View style={styles.categoryContainer}>
-            <Text style={styles.categoryText}>{selectedItem?.category}</Text>
+            <Text style={styles.categoryText}>
+              {exercisesSetDetailData.data.category.category_name}
+            </Text>
           </View>
         </View>
         <View style={bottomSheetModalStyles.titleContainer}>
-          <Text style={styles.titleText}>{selectedItem?.materialTitle}</Text>
+          <Text style={styles.titleText}>
+            {exercisesSetDetailData.data.practice_set_name}
+          </Text>
         </View>
-        <View style={styles.dateContainer}>
-          <View style={styles.dateIconContainer}>
-            <MaterialCommunityIcons
-              name={'calendar-blank'}
-              size={12}
-              color={Colors.neutral500}
-            />
+        {exercisesSetDetailData.data.start_time && (
+          <View style={styles.dateContainer}>
+            <View style={styles.dateIconContainer}>
+              <MaterialCommunityIcons
+                name={'calendar-blank'}
+                size={12}
+                color={Colors.neutral500}
+              />
+            </View>
+            <Text style={styles.dateText}>
+              {formatDateMaterial(exercisesSetDetailData.data.start_time)}{' '}
+              {exercisesSetDetailData.data.end_time
+                ? `- ${formatDateMaterial(
+                    exercisesSetDetailData.data.end_time,
+                  )}`
+                : ''}
+            </Text>
           </View>
-          <Text style={styles.dateText}>{selectedItem?.date}</Text>
-        </View>
+        )}
         <View style={bottomSheetModalStyles.countContainer}>
-          <View style={bottomSheetModalStyles.countChildContainer}>
+          {/* <View style={bottomSheetModalStyles.countChildContainer}>
             <Text style={bottomSheetModalStyles.countText}>
               Kategori {selectedItem.categoryCount}
             </Text>
-          </View>
+          </View> */}
           <View style={bottomSheetModalStyles.countChildContainer}>
             <Text style={bottomSheetModalStyles.countText}>
-              {selectedItem.question} Soal
+              {exercisesSetDetailData.data.total_questions} Soal
             </Text>
           </View>
-          <View style={bottomSheetModalStyles.countChildContainer}>
+          {/* <View style={bottomSheetModalStyles.countChildContainer}>
             <Text style={bottomSheetModalStyles.countText}>
               {selectedItem.time} Menit
             </Text>
-          </View>
+          </View> */}
         </View>
         <View style={bottomSheetModalStyles.tokenTotalContainer}>
           <View style={bottomSheetModalStyles.tokenTotalChildContainer}>
@@ -264,7 +304,9 @@ const DetailPurchaseExercises = props => {
             </Text>
             <View style={[styles.row, { gap: 6 }]}>
               <FontAwesome name="money" size={16} color={Colors.warning500} />
-              <Text style={styles.priceToken}>{selectedItem.tokenPrice}</Text>
+              <Text style={styles.priceToken}>
+                {exercisesSetDetailData.data.price_token}
+              </Text>
             </View>
           </View>
           <View style={bottomSheetModalStyles.tokenTotalChildContainer}>
@@ -276,14 +318,14 @@ const DetailPurchaseExercises = props => {
                 name="money"
                 size={13}
                 color={
-                  myToken >= selectedItem.tokenPrice
+                  myToken >= exercisesSetDetailData.data.price_token
                     ? Colors.neutral400
                     : Colors.danger500
                 }
               />
               <Text
                 style={
-                  myToken >= selectedItem.tokenPrice
+                  myToken >= exercisesSetDetailData.data.price_token
                     ? bottomSheetModalStyles.myTokenText
                     : bottomSheetModalStyles.dangerMyTokenText
                 }
@@ -294,12 +336,12 @@ const DetailPurchaseExercises = props => {
           </View>
         </View>
         <View style={bottomSheetModalStyles.buttonContainer}>
-          {myToken >= selectedItem.tokenPrice ? (
+          {myToken >= exercisesSetDetailData.data.price_token ? (
             <TouchableOpacity
               onPress={() => {
                 setShowBuyWithTokenModal(false);
-                navigation.replace('DetailStartExercises', {
-                  selectedItem: selectedItem,
+                navigation.navigate('DetailStartExercises', {
+                  // selectedItem: selectedItem,
                 });
               }}
               style={bottomSheetModalStyles.buyButtonContainer}
@@ -343,6 +385,12 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: 8,
   },
+  detailText: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontFamily: Fonts.Regular,
+    color: Colors.neutral500,
+  },
   titleContainer: {
     marginTop: 16,
     flexDirection: 'row',
@@ -363,6 +411,12 @@ const styles = StyleSheet.create({
     borderColor: Colors.product200,
     backgroundColor: Colors.product50,
     borderRadius: 4,
+  },
+  showTokenPriceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 16,
   },
   categoryText: {
     fontFamily: Fonts.Regular,

@@ -219,7 +219,7 @@ const ProductPage = () => {
               <TouchableOpacity style={styles.addButtonContainer}>
                 <View style={styles.row}>
                   <Ionicons name={'add'} size={14} color={Colors.neutral500} />
-                  <Text style={styles.addButtonText}>Tambah</Text>
+                  <Text style={styles.addButtonText}>Top Up</Text>
                 </View>
               </TouchableOpacity>
             </View>
