@@ -4,6 +4,7 @@ import { LoginReducer } from './LoginReducer';
 import { ForumReducer } from './ForumReducer';
 import { MaterialReducer } from './MaterialReducer';
 import { ProductReducer } from './ProductReducer';
+import {ExercisesReducer} from './ExercisesReducer';
 
 const rootReducer = combineReducers({
     register: RegisterReducer,
@@ -11,6 +12,7 @@ const rootReducer = combineReducers({
     forum: ForumReducer,
     material: MaterialReducer,
     product: ProductReducer,
+    exercises: ExercisesReducer,
 });
 
 export default rootReducer;

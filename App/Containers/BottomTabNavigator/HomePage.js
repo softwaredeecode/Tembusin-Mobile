@@ -167,7 +167,7 @@ const HomePage = () => {
             ))}
           </View>
         </View>
-        <View style={styles.menuContainer}>
+        {/* <View style={styles.menuContainer}>
           <View style={styles.menuTitleTextContainer}>
             <Text>Belajar UTBK SNBT</Text>
           </View>
@@ -193,7 +193,7 @@ const HomePage = () => {
               </TouchableOpacity>
             )}
           />
-        </View>
+        </View> */}
         <View style={[styles.menuContainer, { marginTop: 16 }]}>
           <View style={styles.menuTitleTextContainer}>
             <Text>Belajar TKA</Text>

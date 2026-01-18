@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   StatusBar,
@@ -9,10 +9,12 @@ import {
   ScrollView,
   TouchableWithoutFeedback,
   Keyboard,
+  ActivityIndicator,
 } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // components
 import MainHeader from '../../../Components/MainHeader';
@@ -22,15 +24,26 @@ import BottomModal from '../../../Components/BottomModal';
 import FilterButton from '../../../Components/FilterButton';
 import CheckboxRow from '../../../Components/CheckboxRow';
 import DatePickerField from '../../../Components/DatePickerField';
+import ListEmptyComponent from '../../../Components/ListEmptyComponents';
 
 //theme
 import { Colors } from '../../../Theme/Colors';
 import { Fonts } from '../../../Theme/Fonts';
 
+// redux
+import { useSelector, useDispatch } from 'react-redux';
+import { ActionStudent } from '../../../Redux/Actions';
+
 const MyTryOutPage = () => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
+  const { myExercisesSetData, exercisesSpinner } = useSelector(
+    state => state.exercises,
+  );
   const [searchMaterial, setSearchMaterial] = useState('');
   const [filterVisible, setFilterVisible] = useState(false);
+  const [page, setPage] = useState(1);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [filter, setFilter] = useState({
     SBNT: false,
     UTBK: false,
@@ -44,72 +57,45 @@ const MyTryOutPage = () => {
   const openFilter = () => setFilterVisible(true);
   const closeFilter = () => setFilterVisible(false);
 
-  const myMaterialData = [
-    {
-      materialTitle: 'Latihan soal SNBT 3',
-      date: 'Akses 3 Nov - 5 Nov',
-      desc: 'Untuk memberi <b>SNBT Juara.</b>',
-      category: 'SNBT',
-      seperateBuy: false,
-      categoryCount: 4,
-      question: 20,
-      time: 90,
-      score: null,
-      notes: '',
-      chance: '3/3',
-      buyStatus: 'purchased',
-      status: 'readyToStart',
-    },
-    {
-      materialTitle: 'Latihan soal SNBT 1',
-      date: 'Akses 3 Nov - 5 Nov',
-      desc: '',
-      category: 'SNBT',
-      seperateBuy: true,
-      categoryCount: 3,
-      question: 20,
-      time: 90,
-      scroe: null,
-      notes: '',
-      chance: '3/3',
-      buyStatus: 'purchased',
-      status: 'notReadyToStart',
-    },
-    {
-      materialTitle: 'Latihan soal UTBK 1',
-      date: 'Akses 3 Nov - 5 Nov',
-      desc: 'Untuk memberi <b>SNBT Juara.</b>',
-      category: 'SNBT',
-      seperateBuy: false,
-      categoryCount: 2,
-      question: 20,
-      time: 90,
-      score: 100,
-      notes: 'Hebat!',
-      chance: '2/3',
-      buyStatus: 'purchased',
-      status: 'done',
-    },
-    {
-      materialTitle: 'Latihan soal SNBT 3',
-      date: 'Akses 3 Nov - 5 Nov',
-      desc: 'Untuk memberi <b>SNBT Juara.</b>',
-      category: 'SNBT',
-      seperateBuy: false,
-      categoryCount: 4,
-      question: 20,
-      time: 90,
-      score: 100,
-      notes: 'Hebat!',
-      chance: '2/3',
-      buyStatus: 'purchased',
-      status: 'expired',
-    },
-  ];
+  const loadMoreData = async () => {
+    if (isLoadingMore) return;
 
-  const handleOnPress = item => {
-    navigation.navigate('DetailStartExercises', { selectedItem: item });
+    const totalPages = myExercisesSetData?.data?.total_pages || 1;
+    if (page >= totalPages) return;
+
+    setIsLoadingMore(true);
+
+    const nextPage = page + 1;
+    const token = await AsyncStorage.getItem('auth_token');
+
+    await dispatch(
+      ActionStudent.GetMyExercisesSetData(token, {
+        page: nextPage,
+        limit: 10,
+      }),
+    );
+
+    setPage(nextPage);
+    setIsLoadingMore(false);
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      const initializeData = async () => {
+        const token = await AsyncStorage.getItem('auth_token');
+
+        dispatch(
+          ActionStudent.GetMyExercisesSetData(token, {
+            page: 1,
+            limit: 10,
+          }),
+        );
+      };
+      initializeData();
+
+      return () => {};
+    }, [dispatch]),
+  );
 
   return (
     <View style={styles.container}>
@@ -136,11 +122,31 @@ const MyTryOutPage = () => {
       </TouchableWithoutFeedback>
       <View style={styles.bodyContainer}>
         <FlatList
-          data={myMaterialData}
-          renderItem={({ item }) => <ExercisesCardComponent item={item} onPress={handleOnPress} />}
+          data={myExercisesSetData.data.data || []}
+          renderItem={({ item }) => <ExercisesCardComponent item={item} />}
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
           contentContainerStyle={{ paddingBottom: 20 }}
           keyboardDismissMode="on-drag"
+          onEndReached={loadMoreData}
+          onEndReachedThreshold={0.3}
+          ListFooterComponent={
+            isLoadingMore ? (
+              <View style={{ paddingVertical: 16 }}>
+                <ActivityIndicator size="small" color={Colors.product900} />
+              </View>
+            ) : null
+          }
+          ListEmptyComponent={
+            !exercisesSpinner ? (
+              <ListEmptyComponent
+                title={'Belum ada latihan soal yang tersedia'}
+                desc={
+                  'Mulai eksplorasi dan akses latihan soal-mu di sini.'
+                }
+                iconName={'book-open-blank-variant'}
+              />
+            ) : null
+          }
         />
       </View>
       <BottomModal

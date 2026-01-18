@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   StatusBar,
@@ -14,6 +14,7 @@ import {
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 
 // components
 import MainHeader from '../../../Components/MainHeader';
@@ -56,9 +57,12 @@ const MyMaterialPage = () => {
     state => state.material,
   );
 
-  useEffect(() => {
-    loadInitialData();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadInitialData();
+      return () => {};
+    }, [dispatch]),
+  );
 
   const loadInitialData = async () => {
     const token = await AsyncStorage.getItem('auth_token');

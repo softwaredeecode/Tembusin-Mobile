@@ -19,6 +19,7 @@ import {
   AddPost,
 } from './Forum';
 import { GetProductList } from './Product';
+import { GetAllExercisesSetData, GetMyExercisesSetData, GetExercisesSetDetailData } from './Exercises';
 
 export const ActionStudent = {
   PostRegister,
@@ -36,4 +37,7 @@ export const ActionStudent = {
   PurchaseMaterialCollection,
   GetMaterialDetailData,
   GetProductList,
+  GetAllExercisesSetData,
+  GetMyExercisesSetData,
+  GetExercisesSetDetailData
 };

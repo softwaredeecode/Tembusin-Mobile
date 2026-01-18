@@ -7,13 +7,13 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 // components
 import MainHeader from '../../../Components/MainHeader';
@@ -38,6 +38,13 @@ const MaterialDetailPage = props => {
   const { materialCollectionDetailData } = useSelector(state => state.material);
   const [expanded, setExpanded] = useState({});
 
+  const isAfterDeadline = deadline => {
+    const now = new Date();
+    const deadlineDate = new Date(deadline);
+
+    return now > deadlineDate;
+  };
+
   const toggleExpand = key => {
     setExpanded(prev => ({
       ...prev,
@@ -45,19 +52,23 @@ const MaterialDetailPage = props => {
     }));
   };
 
-  useEffect(() => {
-    const initializeData = async () => {
-      const token = await AsyncStorage.getItem('auth_token');
+  useFocusEffect(
+    useCallback(() => {
+      const initializeData = async () => {
+        const token = await AsyncStorage.getItem('auth_token');
 
-      dispatch(
-        ActionStudent.GetMaterialCollectionDetailData(
-          token,
-          materialCollectionId,
-        ),
-      );
-    };
-    initializeData();
-  }, []);
+        dispatch(
+          ActionStudent.GetMaterialCollectionDetailData(
+            token,
+            materialCollectionId,
+          ),
+        );
+      };
+      initializeData();
+
+      return () => {};
+    }, [dispatch]),
+  );
 
   if (!materialCollectionDetailData?.data) {
     return (
@@ -252,23 +263,26 @@ const MaterialDetailPage = props => {
                 </Text>
               </View>
             </View>
-            <View style={[styles.row]}>
-              <View style={styles.iconContainer}>
-                <MaterialCommunityIcons
-                  name={'calendar-blank'}
-                  size={14}
-                  color={Colors.neutral500}
-                />
+            {materialCollectionDetailData.data.start_time && (
+              <View style={[styles.row]}>
+                <View style={styles.iconContainer}>
+                  <MaterialCommunityIcons
+                    name={'calendar-blank'}
+                    size={14}
+                    color={Colors.neutral500}
+                  />
+                </View>
+                <Text style={styles.detailText}>
+                  Akses{' '}
+                  {formatDateMaterial(materialCollectionDetailData.data.start_time)}{' '}
+                  {materialCollectionDetailData.data.end_time
+                    ? `- ${formatDateMaterial(
+                        materialCollectionDetailData.data.end_time,
+                      )}`
+                    : ''}
+                </Text>
               </View>
-              <Text style={styles.detailText}>
-                Akses{' '}
-                {formatDateMaterial(
-                  materialCollectionDetailData.data.start_time,
-                )}{' '}
-                -{' '}
-                {formatDateMaterial(materialCollectionDetailData.data.end_time)}
-              </Text>
-            </View>
+            )}
             <View style={[styles.row]}>
               <View style={styles.iconContainer}>
                 <MaterialCommunityIcons
@@ -295,6 +309,16 @@ const MaterialDetailPage = props => {
                   : 'Materi tidak dapat diunduh'}
               </Text>
             </View>
+            {isAfterDeadline(materialCollectionDetailData.data.end_time) && (
+              <View style={[styles.row, styles.expiredContainer]}>
+                <MaterialCommunityIcons
+                  name={'information-outline'}
+                  size={14}
+                  color={Colors.neutral500}
+                />
+                <Text style={styles.detailText}>Lewat batas waktu akses</Text>
+              </View>
+            )}
           </View>
         </View>
         <View style={styles.badgeContainer}>
@@ -339,38 +363,48 @@ const MaterialDetailPage = props => {
         </View>
         <CategoriesDetail />
       </ScrollView>
-      <View style={styles.bottomComponent}>
-        {/* {materialCollectionDetailData.data.access_type.id != 4 &&
+      {!isAfterDeadline(materialCollectionDetailData.data.end_time) && (
+        <View style={styles.bottomComponent}>
+          {/* {materialCollectionDetailData.data.access_type.id != 4 &&
           !materialCollectionDetailData.data.is_purchased && (
             <Text style={styles.buttonDesc}>
               Beli paket asdasd dan akses sebagai member
             </Text>
           )} */}
-        <View style={styles.buttonContainer}>
-          {materialCollectionDetailData.data.has_downloaded && (
+          <View style={styles.buttonContainer}>
+            {materialCollectionDetailData.data.download_flag &&
+              materialCollectionDetailData.data.statistics
+                .progress_percentage === 100 && (
+                <TouchableOpacity
+                  onPress={() => {}}
+                  style={styles.downloadButtonContainer}
+                >
+                  <MaterialCommunityIcons
+                    name={'download'}
+                    size={20}
+                    color={Colors.neutral500}
+                  />
+                </TouchableOpacity>
+              )}
             <TouchableOpacity
-              onPress={() => {}}
-              style={styles.downloadButtonContainer}
+              onPress={() => {
+                navigation.navigate('StartMaterialPage', {
+                  materialCollectionDetailDataPrev:
+                    materialCollectionDetailData,
+                });
+              }}
+              style={styles.joinMemberContainer}
             >
-              <MaterialCommunityIcons
-                name={'download'}
-                size={20}
-                color={Colors.neutral500}
-              />
+              <Text style={styles.joinMemberText}>
+                {materialCollectionDetailData.data.statistics
+                  .progress_percentage === 100
+                  ? 'Pelajari ulang'
+                  : 'Mulai'}
+              </Text>
             </TouchableOpacity>
-          )}
-          <TouchableOpacity
-            onPress={() => {
-              navigation.replace('StartMaterialPage', {
-                materialCollectionDetailData: materialCollectionDetailData,
-              });
-            }}
-            style={styles.joinMemberContainer}
-          >
-            <Text style={styles.joinMemberText}>Mulai</Text>
-          </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      )}
     </View>
   );
 };
@@ -587,5 +621,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  expiredContainer: {
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+    gap: 6,
+    borderWidth: 1,
+    backgroundColor: Colors.neutral50,
+    borderColor: Colors.neutral200,
+    borderRadius: 6,
+    width: 220,
   },
 });

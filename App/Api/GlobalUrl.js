@@ -23,6 +23,16 @@ export const MATERIAL = {
   materialDetail: '/student/materials',
 }
 
+export const EXERCISES = {
+  allExercisesSet: '/student/practice-sets/paginated',
+  myExercisesSet: '/student/my-practice-sets/paginated',
+  exercisesSetDetail: '/student/practice-sets',
+}
+
+export const TRYOUT = {
+  allTryOut: '/student/tryouts/paginated',
+}
+
 export const PRODUCT = {
   productList: '/student/products'
 }

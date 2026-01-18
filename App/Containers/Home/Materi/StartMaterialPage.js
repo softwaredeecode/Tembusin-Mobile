@@ -6,11 +6,12 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // components
 import MainHeader from '../../../Components/MainHeader';
@@ -20,10 +21,16 @@ import BottomModal from '../../../Components/BottomModal';
 import { Colors } from '../../../Theme/Colors';
 import { Fonts } from '../../../Theme/Fonts';
 
+// redux
+import { useDispatch, useSelector } from 'react-redux';
+import { ActionStudent } from '../../../Redux/Actions';
+
 const StartMaterialPage = props => {
   const navigation = useNavigation();
-  const materialCollectionDetailData =
-    props?.route?.params?.materialCollectionDetailData;
+  const dispatch = useDispatch();
+  const materialCollectionDetailDataPrev =
+    props?.route?.params?.materialCollectionDetailDataPrev;
+  const { materialCollectionDetailData } = useSelector(state => state.material);
   const [expanded, setExpanded] = useState({});
   const [showConfirmationGoBack, setShowConfirmationGoBack] = useState(false);
 
@@ -33,6 +40,45 @@ const StartMaterialPage = props => {
       [key]: !prev[key],
     }));
   };
+
+  const flattenMaterials = data => {
+    const materials = [];
+
+    data.categories.forEach(category => {
+      category.chapters?.forEach(chapter => {
+        chapter.subchapters?.forEach(subchapter => {
+          subchapter.materials?.forEach(material => {
+            materials.push({
+              ...material,
+              categoryName: category.material_category_name,
+              chapterName: chapter.material_category_chapter_name,
+              subchapterName: subchapter.material_category_subchapter_name,
+            });
+          });
+        });
+      });
+    });
+
+    return materials;
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      const initializeData = async () => {
+        const token = await AsyncStorage.getItem('auth_token');
+
+        dispatch(
+          ActionStudent.GetMaterialCollectionDetailData(
+            token,
+            materialCollectionDetailDataPrev.data.id,
+          ),
+        );
+      };
+      initializeData();
+
+      return () => {};
+    }, [dispatch]),
+  );
 
   useEffect(() => {
     if (!materialCollectionDetailData?.data?.categories) return;
@@ -174,12 +220,20 @@ const StartMaterialPage = props => {
                                       <TouchableOpacity
                                         style={styles.nextButtonContainer}
                                         onPress={() => {
+                                          const materialList = flattenMaterials(
+                                            materialCollectionDetailData.data,
+                                          );
+                                          const currentIndex =
+                                            materialList.findIndex(
+                                              item => item.id === material.id,
+                                            );
+
                                           navigation.navigate(
                                             'StartMaterialDetailPage',
                                             {
-                                              materialId: material.id,
-                                              materialCollectionDetailData:
-                                                materialCollectionDetailData,
+                                              materialList,
+                                              currentIndex,
+                                              materialCollectionDetailData,
                                             },
                                           );
                                         }}
@@ -250,7 +304,9 @@ const StartMaterialPage = props => {
             <Text style={styles.exitButtonText}>Keluar</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => {}}
+            onPress={() => {
+              navigation.goBack();
+            }}
             disabled={
               materialCollectionDetailData.data.statistics.progress_percentage <
               100

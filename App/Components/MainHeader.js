@@ -38,9 +38,11 @@ const MainHeader = ({
       )}
 
       {/* TITLE */}
-      <View style={styles.headerTextContainer}>
-        <Text style={styles.headerText}>{title}</Text>
-      </View>
+      {title !== '' && (
+        <View style={styles.headerTextContainer}>
+          <Text style={styles.headerText}>{title}</Text>
+        </View>
+      )}
 
       {/* RIGHT */}
       <View style={styles.rightContainer}>
@@ -83,7 +85,7 @@ const styles = StyleSheet.create({
     color: Colors.neutral900,
   },
   rightContainer: {
-    // flex: 1,
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'flex-end',
   },
