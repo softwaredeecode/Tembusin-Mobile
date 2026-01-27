@@ -171,6 +171,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderTopWidth: 1,
     borderTopColor: Colors.neutral200,
+    paddingBottom: 120,
   },
   contentChildContainer: {
     padding: 12,

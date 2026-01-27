@@ -18,25 +18,28 @@ import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { Colors } from '../Theme/Colors';
 import { Fonts } from '../Theme/Fonts';
 
-const TryOutCardComponents = ({ item, onPress }) => {
+const TryOutCardComponents = ({ item }) => {
   const { width } = useWindowDimensions();
-  const buttonText =
-    item.status == 'readyToStart'
-      ? 'Mulai'
-      : item.status == 'notReadyToStart'
-      ? 'Lihat Detail'
-      : item.status == 'done'
+  const buttonText = item.is_purchased
+    ? item.attempts_used > 0 && item.attempts_used < item.max_attempts
+      ? 'Mulai ulang'
+      : item.attempts_used === item.max_attempts
       ? 'Review'
-      : 'Beli';
+      : 'Mulai'
+    : item.access_type.id == 4
+    ? 'Ambil'
+    : 'Beli';
 
   return (
     <View style={styles.materialCardContainer}>
-      <Image
-        source={require('../Assets/Images/dummyHome.png')}
-        style={styles.image}
-        resizeMode="cover"
-      />
-      <View style={styles.badgeContainer}>
+      {item.banner_url !== '' && (
+        <Image
+          source={{ uri: item.banner_url }}
+          style={styles.image}
+          resizeMode="cover"
+        />
+      )}
+      {/* <View style={styles.badgeContainer}>
         {item.categoryCount > 0 && (
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{item.categoryCount} Kategori</Text>
@@ -52,12 +55,14 @@ const TryOutCardComponents = ({ item, onPress }) => {
             <Text style={styles.badgeText}>{item.time} Menit</Text>
           </View>
         )}
-      </View>
+      </View> */}
       <View style={styles.materialInfoContainer}>
         <View style={styles.materialTitleContainer}>
-          <Text style={styles.materialTitleText}>{item.materialTitle}</Text>
+          <Text style={styles.materialTitleText}>{item.tryout_name}</Text>
           <View style={styles.materialCategoryContainer}>
-            <Text style={styles.materialCategoryText}>{item.category}</Text>
+            <Text style={styles.materialCategoryText}>
+              {item.category.category_name}
+            </Text>
           </View>
         </View>
       </View>
@@ -70,9 +75,16 @@ const TryOutCardComponents = ({ item, onPress }) => {
               color={Colors.neutral500}
             />
           </View>
-          <Text style={styles.materialDateText}>{item.date}</Text>
+          {item.no_time_limit_flag === 0 ? (
+            <Text style={styles.materialDateText}>
+              {formatDateMaterial(item.start_time)}{' '}
+              {item.end_time ? `- ${formatDateMaterial(item.end_time)}` : ''}
+            </Text>
+          ) : (
+            <Text style={styles.materialDateText}>Akses kapan saja</Text>
+          )}
         </View>
-        {item.desc !== '' && (
+        {item.description !== '' && (
           <View style={styles.materialDescContainer}>
             <View style={styles.dateIconContainer}>
               <MaterialCommunityIcons
@@ -81,14 +93,7 @@ const TryOutCardComponents = ({ item, onPress }) => {
                 color={Colors.neutral500}
               />
             </View>
-            <RenderHtml
-              contentWidth={width}
-              source={{ html: item.desc }}
-              tagsStyles={{
-                b: { fontWeight: 'bold' },
-              }}
-              baseStyle={styles.materialDateText}
-            />
+            <Text style={styles.materialDateText}>{item.description}</Text>
           </View>
         )}
         {item.seperateBuy && item.buyStatus == 'purchased' && (
@@ -106,13 +111,18 @@ const TryOutCardComponents = ({ item, onPress }) => {
             />
           </View>
         )}
-        {item.seperateBuy && item.buyStatus !== 'purchased' && (
-          <View style={styles.seperateBuyContainer}>
-            <Ionicons name={'checkmark'} size={14} color={Colors.success500} />
-            <Text style={styles.seperateBuyText}>Dapat dibeli terpisah</Text>
-          </View>
-        )}
-        {item.payMethod == 'free' && (
+        {(item?.access_type?.id == 1 || item?.access_type?.id == 3) &&
+          !item?.is_purchased && (
+            <View style={styles.seperateBuyContainer}>
+              <Ionicons
+                name={'checkmark'}
+                size={14}
+                color={Colors.success500}
+              />
+              <Text style={styles.seperateBuyText}>Dapat dibeli terpisah</Text>
+            </View>
+          )}
+        {item?.access_type?.id == 4 && !item?.is_purchased && (
           <View style={styles.seperateBuyContainer}>
             <Ionicons
               name={'time-outline'}
@@ -122,7 +132,7 @@ const TryOutCardComponents = ({ item, onPress }) => {
             <Text style={styles.seperateBuyText}>Gratis untuk saat ini</Text>
           </View>
         )}
-        {item.closeDeadline && (
+        {/* {item.closeDeadline && (
           <View style={styles.deadlineBuyContainer}>
             <Ionicons
               name={'time-outline'}
@@ -131,11 +141,11 @@ const TryOutCardComponents = ({ item, onPress }) => {
             />
             <Text style={styles.deadlineText}>Terakhir dipelajari</Text>
           </View>
-        )}
+        )} */}
       </View>
       <View style={styles.materialBuyContainer}>
-        {item.buyStatus == 'purchased' ? (
-          item.score == null ? (
+        {item.is_purchased ? (
+          item.attempts_used === 0 ? (
             <View style={styles.scoreContainer}>
               <Entypo name={'dot-single'} size={22} color={Colors.neutral400} />
               <Text style={styles.notesText}>Belum ada!</Text>
@@ -152,17 +162,20 @@ const TryOutCardComponents = ({ item, onPress }) => {
           <View style={{ flex: 1 }} />
         )}
 
-        {item.payMethod === 'token' && (
-          <View style={[styles.row, { gap: 6 }]}>
-            <FontAwesome name={'money'} size={16} color={Colors.warning500} />
-            <Text style={styles.priceToken}>{item.tokenPrice}</Text>
-          </View>
+        {(item?.access_type?.id === 1 || item?.access_type?.id === 3) &&
+          !item.is_purchased && (
+            <View style={[styles.row, { gap: 6 }]}>
+              <FontAwesome name={'money'} size={16} color={Colors.warning500} />
+              <Text style={styles.priceToken}>{item.price_token}</Text>
+            </View>
+          )}
+        {item?.access_type?.id === 4 && !item.is_purchased && (
+          <Text style={styles.freeText}>Free</Text>
         )}
-        {item.payMethod === 'free' && <Text style={styles.freeText}>Free</Text>}
-        <TouchableOpacity onPress={() => onPress(item)} style={styles.buyButtonContainer}>
-          <Text style={styles.buyButtonText}>
-            {item.payMethod == 'free' ? 'Ambil' : buttonText}
-          </Text>
+        <TouchableOpacity
+          style={styles.buyButtonContainer}
+        >
+          <Text style={styles.buyButtonText}>{buttonText}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -180,6 +193,9 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
+    height: 190,
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
   },
   badgeContainer: {
     position: 'absolute',

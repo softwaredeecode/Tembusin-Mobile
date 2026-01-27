@@ -12,6 +12,7 @@ const MainHeader = ({
   showBack = true,
   onBackPress,
   rightComponent = null,
+  noBack = false,
 }) => {
   const navigation = useNavigation();
 
@@ -19,7 +20,9 @@ const MainHeader = ({
     if (onBackPress) {
       onBackPress();
     }
-    navigation.goBack();
+    if (!noBack) {
+      navigation.goBack();
+    }
   };
 
   return (
@@ -45,9 +48,15 @@ const MainHeader = ({
       )}
 
       {/* RIGHT */}
-      <View style={styles.rightContainer}>
-        {rightComponent ? rightComponent : <View style={styles.placeholder} />}
-      </View>
+      {rightComponent && (
+        <View style={styles.rightContainer}>
+          {rightComponent ? (
+            rightComponent
+          ) : (
+            <View style={styles.placeholder} />
+          )}
+        </View>
+      )}
     </View>
   );
 };

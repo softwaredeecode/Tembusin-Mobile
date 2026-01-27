@@ -21,12 +21,14 @@ export const MATERIAL = {
   materialCollectionDetail: '/student/material-collections',
   buyMaterial: '/student/material-collections',
   materialDetail: '/student/materials',
+  lastReadMaterialCollection: '/student/material-collections/last-read'
 }
 
 export const EXERCISES = {
   allExercisesSet: '/student/practice-sets/paginated',
   myExercisesSet: '/student/my-practice-sets/paginated',
   exercisesSetDetail: '/student/practice-sets',
+  comingSoonExercise: '/student/practice-sets/closest-upcoming'
 }
 
 export const TRYOUT = {

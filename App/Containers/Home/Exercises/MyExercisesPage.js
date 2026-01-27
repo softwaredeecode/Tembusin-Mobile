@@ -34,7 +34,7 @@ import { Fonts } from '../../../Theme/Fonts';
 import { useSelector, useDispatch } from 'react-redux';
 import { ActionStudent } from '../../../Redux/Actions';
 
-const MyTryOutPage = () => {
+const MyExercisesPage = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const { myExercisesSetData, exercisesSpinner } = useSelector(
@@ -213,7 +213,7 @@ const MyTryOutPage = () => {
   );
 };
 
-export default MyTryOutPage;
+export default MyExercisesPage;
 
 const styles = StyleSheet.create({
   container: {

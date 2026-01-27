@@ -10,6 +10,7 @@ import {
   GetMaterialCollectionDetailData,
   PurchaseMaterialCollection,
   GetMaterialDetailData,
+  GetLastReadMaterialCollectionDetailData,
 } from './Material';
 import {
   GetLatestForumData,
@@ -19,7 +20,18 @@ import {
   AddPost,
 } from './Forum';
 import { GetProductList } from './Product';
-import { GetAllExercisesSetData, GetMyExercisesSetData, GetExercisesSetDetailData } from './Exercises';
+import {
+  GetAllExercisesSetData,
+  GetMyExercisesSetData,
+  GetExercisesSetDetailData,
+  GetExercisesDetailContent,
+  StartNewAttempt,
+  SubmitAnswer,
+  SubmitAttempt,
+  GetAttemptList,
+  GetComingSoonExercise,
+} from './Exercises';
+import { GetAllTryOutData } from './TryOut';
 
 export const ActionStudent = {
   PostRegister,
@@ -36,8 +48,16 @@ export const ActionStudent = {
   GetMaterialCollectionDetailData,
   PurchaseMaterialCollection,
   GetMaterialDetailData,
+  GetLastReadMaterialCollectionDetailData,
   GetProductList,
   GetAllExercisesSetData,
   GetMyExercisesSetData,
-  GetExercisesSetDetailData
+  GetExercisesSetDetailData,
+  GetExercisesDetailContent,
+  StartNewAttempt,
+  SubmitAnswer,
+  SubmitAttempt,
+  GetAttemptList,
+  GetComingSoonExercise,
+  GetAllTryOutData,
 };

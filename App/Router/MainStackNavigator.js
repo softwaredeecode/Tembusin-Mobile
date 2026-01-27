@@ -13,7 +13,12 @@ import ExercisesPage from '../Containers/Home/Exercises/ExercisesPage';
 import MyExercisesPage from '../Containers/Home/Exercises/MyExercisesPage';
 import AllExercisesPage from '../Containers/Home/Exercises/AllExercisesPage';
 import DetailPurchasesExercises from '../Containers/Home/Exercises/DetailPurchaseExercises';
-import DetailStartExercises from '../Containers/Home/Exercises/DetailStartExercises';
+import StartExercisesPage from '../Containers/Home/Exercises/StartExercisesPage';
+import StartExercisesDetailPage from '../Containers/Home/Exercises/StartExecisesDetailPage';
+import ConfirmationSubmitExercisesPage from '../Containers/Home/Exercises/ConfirmationSubmitExercisesPage';
+import ExercisesResultPage from '../Containers/Home/Exercises/ExercisesResultPage';
+import ResultReviewDetailPage from '../Containers/Home/Exercises/ResultReviewDetailPage';
+import ExerciseGuidelinePage from '../Containers/Home/Exercises/ExerciseGuidelinePage';
 import TryOutPage from '../Containers/Home/TryOut/TryOutPage';
 import AllTryOutPage from '../Containers/Home/TryOut/AllTryOutPage';
 import MyTryOutPage from '../Containers/Home/TryOut/MyTryOutPage';
@@ -33,9 +38,15 @@ const MainStackNavigator = () => {
       <Stack.Screen name="AllMaterialPage" component={AllMaterialPage} />
       <Stack.Screen name="MyMaterialPage" component={MyMaterialPage} />
       <Stack.Screen name="MaterialDetailPage" component={MaterialDetailPage} />
-      <Stack.Screen name="PurchaseMaterialDetailPage" component={PurchaseMaterialDetailPage} />
+      <Stack.Screen
+        name="PurchaseMaterialDetailPage"
+        component={PurchaseMaterialDetailPage}
+      />
       <Stack.Screen name="StartMaterialPage" component={StartMaterialPage} />
-      <Stack.Screen name="StartMaterialDetailPage" component={StartMaterialDetailPage} />
+      <Stack.Screen
+        name="StartMaterialDetailPage"
+        component={StartMaterialDetailPage}
+      />
 
       <Stack.Screen name="ExercisesPage" component={ExercisesPage} />
       <Stack.Screen name="MyExercisesPage" component={MyExercisesPage} />
@@ -44,9 +55,26 @@ const MainStackNavigator = () => {
         name="DetailPurchasesExercises"
         component={DetailPurchasesExercises}
       />
+      <Stack.Screen name="StartExercisesPage" component={StartExercisesPage} />
       <Stack.Screen
-        name="DetailStartExercises"
-        component={DetailStartExercises}
+        name="StartExercisesDetailPage"
+        component={StartExercisesDetailPage}
+      />
+      <Stack.Screen
+        name="ConfirmationSubmitExercisesPage"
+        component={ConfirmationSubmitExercisesPage}
+      />
+      <Stack.Screen
+        name="ExercisesResultPage"
+        component={ExercisesResultPage}
+      />
+      <Stack.Screen
+        name="ResultReviewDetailPage"
+        component={ResultReviewDetailPage}
+      />
+      <Stack.Screen
+        name="ExerciseGuidelinePage"
+        component={ExerciseGuidelinePage}
       />
       <Stack.Screen name="TryOutPage" component={TryOutPage} />
       <Stack.Screen name="AllTryOutPage" component={AllTryOutPage} />
