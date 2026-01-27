@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   StatusBar,
@@ -8,20 +8,27 @@ import {
   FlatList,
   ScrollView,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // components
 import MainHeader from '../../../Components/MainHeader';
 import TryOutCardComponents from '../../../Components/TryOutCardComponent';
+import ListEmptyComponent from '../../../Components/ListEmptyComponents';
 
 //theme
 import { Colors } from '../../../Theme/Colors';
 import { Fonts } from '../../../Theme/Fonts';
 
+// redux
+import { useDispatch, useSelector } from 'react-redux';
+import { ActionStudent } from '../../../Redux/Actions';
+
 const TryOutPage = () => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
 
   const lastOpenData = {
     title: 'Try Out SNBT 3',
@@ -29,48 +36,25 @@ const TryOutPage = () => {
     category: 'SNBT',
   };
 
-  const tryoutData = [
-    {
-      materialTitle: 'Try Out SNBT 5',
-      date: 'Akses 3 Nov - 5 Nov',
-      desc: 'Untuk member <b>SNBT Juara.</b>',
-      category: 'SNBT',
-      seperateBuy: false,
-      categoryCount: 4,
-      question: 20,
-      time: 90,
-      tokenPrice: 0,
-      payMethod: 'member',
-    },
-    {
-      materialTitle: 'Try Out SNBT 4',
-      date: 'Akses 3 Nov - 5 Nov',
-      desc: 'Untuk member <b>SNBT Juara.</b>',
-      category: 'SNBT',
-      seperateBuy: true,
-      categoryCount: 3,
-      question: 20,
-      time: 90,
-      tokenPrice: 65,
-      payMethod: 'token',
-    },
-    {
-      materialTitle: 'Try Out SNBT 2 (Lite)',
-      date: 'Akses 3 Nov - 5 Nov',
-      desc: '',
-      category: 'SNBT',
-      seperateBuy: false,
-      categoryCount: 2,
-      question: 20,
-      time: 90,
-      tokenPrice: 0,
-      payMethod: 'free',
-    },
-  ];
+  const { allTryOutData, tryOutSpinner } = useSelector(state => state.tryout);
 
-  const handleOnPress = item => {
-    navigation.navigate('DetailPurchaseTryOut', { selectedItem: item });
-  };
+  useFocusEffect(
+    useCallback(() => {
+      const initializeData = async () => {
+        const token = await AsyncStorage.getItem('auth_token');
+
+        dispatch(
+          ActionStudent.GetAllTryOutData(token, {
+            page: 1,
+            limit: 3,
+          }),
+        );
+      };
+      initializeData();
+
+      return () => {};
+    }, [dispatch]),
+  );
 
   return (
     <View style={{ flex: 1, backgroundColor: 'white' }}>
@@ -143,37 +127,48 @@ const TryOutPage = () => {
           <Text style={styles.exploreAllProductTitleText}>
             Jelajahi semua try out!
           </Text>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('AllTryOutPage')}
-            style={[styles.row, styles.exploreAllProductTitleButtonContainer]}
-          >
-            <Text style={styles.exploreAllProductTitleButtonText}>
-              Lihat semua
-            </Text>
-            <Ionicons
-              name={'chevron-forward'}
-              size={14}
-              color={Colors.product500}
-            />
-          </TouchableOpacity>
+          {allTryOutData.data.total_items && (
+            <TouchableOpacity
+              onPress={() => navigation.navigate('AllTryOutPage')}
+              style={[styles.row, styles.exploreAllProductTitleButtonContainer]}
+            >
+              <Text style={styles.exploreAllProductTitleButtonText}>
+                Lihat semua
+              </Text>
+              <Ionicons
+                name={'chevron-forward'}
+                size={14}
+                color={Colors.product500}
+              />
+            </TouchableOpacity>
+          )}
         </View>
         <FlatList
-          data={tryoutData}
+          data={allTryOutData?.data?.data || []}
           renderItem={({ item }) => {
-            return (
-              <TryOutCardComponents item={item} onPress={handleOnPress} />
-            );
+            return <TryOutCardComponents item={item} />;
           }}
           scrollEnabled={false}
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
           gap={12}
+          ListEmptyComponent={
+            !tryOutSpinner ? (
+              <ListEmptyComponent
+                title={'Belum ada try out yang tersedia'}
+                desc={
+                  'Try out belum tersedia untuk saat ini. Silakan cek kembali di lain waktu.'
+                }
+                iconName={'book-open-blank-variant'}
+              />
+            ) : null
+          }
         />
         <TouchableOpacity
           onPress={() => navigation.navigate('AllTryOutPage')}
           style={styles.openAllMaterialContainer}
         >
           <Text style={styles.openAllMaterialText}>
-            Lihat semua latihan soal
+            Lihat semua try out
           </Text>
         </TouchableOpacity>
       </ScrollView>

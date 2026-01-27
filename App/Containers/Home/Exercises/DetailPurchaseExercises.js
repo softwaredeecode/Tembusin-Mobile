@@ -165,7 +165,7 @@ const DetailPurchaseExercises = props => {
           )}
         </View>
         <View style={styles.countDetailContainer}>
-          {/* <View style={[styles.countContainer, { width: width / 3.5 }]}>
+          <View style={[styles.countContainer, { width: width / 3.5 }]}>
             <View style={styles.countIconContainer}>
               <MaterialCommunityIcons
                 name={'folder-outline'}
@@ -174,10 +174,13 @@ const DetailPurchaseExercises = props => {
               />
             </View>
             <Text style={styles.countTitleText}>
-              {selectedItem.categoryCount} Kategori
+              {
+                exercisesSetDetailData.data.sub_question_category
+                  .sub_question_category_name
+              }
             </Text>
             <Text style={styles.countText}>Kategori</Text>
-          </View> */}
+          </View>
           {exercisesSetDetailData.data.total_questions > 0 && (
             <View style={[styles.countContainer, { width: width / 3.5 }]}>
               <View style={styles.countIconContainer}>
@@ -220,11 +223,11 @@ const DetailPurchaseExercises = props => {
           )}
           {exercisesSetDetailData.data.access_type.id != 3 && (
             <TouchableOpacity
-              onPress={() =>
-                navigation.navigate('DetailStartExercises', {
-                  // selectedItem: selectedItem,
-                })
-              }
+              onPress={() => {
+                // navigation.navigate('StartExercisesPage', {
+                //   // selectedItem: selectedItem,
+                // });
+              }}
               style={styles.joinMemberContainer}
             >
               <Text style={styles.joinMemberText}>
@@ -340,9 +343,9 @@ const DetailPurchaseExercises = props => {
             <TouchableOpacity
               onPress={() => {
                 setShowBuyWithTokenModal(false);
-                navigation.navigate('DetailStartExercises', {
-                  // selectedItem: selectedItem,
-                });
+                // navigation.navigate('StartExercisesPage', {
+                //   // selectedItem: selectedItem,
+                // });
               }}
               style={bottomSheetModalStyles.buyButtonContainer}
             >
@@ -383,7 +386,9 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
-    borderRadius: 8,
+    height: 190,
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
   },
   detailText: {
     fontSize: 14,
@@ -478,6 +483,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.Medium,
     fontSize: 14,
     lineHeight: 20,
+    textAlign: 'center',
     color: Colors.neutral900,
   },
   countText: {
@@ -587,6 +593,12 @@ const bottomSheetModalStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
+  },
+  priceToken: {
+    fontFamily: Fonts.SemiBold,
+    fontSize: 20,
+    lineHeight: 24,
+    color: Colors.neutral900,
   },
   fileIconContainer: {
     padding: 8,

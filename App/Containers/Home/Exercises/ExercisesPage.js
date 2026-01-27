@@ -25,6 +25,7 @@ import { Fonts } from '../../../Theme/Fonts';
 // redux
 import { useDispatch, useSelector } from 'react-redux';
 import { ActionStudent } from '../../../Redux/Actions';
+import { formatDateMaterial } from '../../../Utils/Helper';
 
 const ExercisesPage = () => {
   const navigation = useNavigation();
@@ -36,25 +37,23 @@ const ExercisesPage = () => {
     category: 'SNBT',
   };
 
-  const { allExercisesSetData, exercisesSpinner } = useSelector(
-    state => state.exercises,
-  );
-
-  const handleOnPress = item => {
-    navigation.navigate('DetailPurchasesExercises', { selectedItem: item });
-  };
+  const { allExercisesSetData, comingSoonExerciseData, exercisesSpinner } =
+    useSelector(state => state.exercises);
 
   useFocusEffect(
     useCallback(() => {
       const initializeData = async () => {
         const token = await AsyncStorage.getItem('auth_token');
 
-        dispatch(
-          ActionStudent.GetAllExercisesSetData(token, {
-            page: 1,
-            limit: 3,
-          }),
-        );
+        Promise.all([
+          dispatch(
+            ActionStudent.GetAllExercisesSetData(token, {
+              page: 1,
+              limit: 3,
+            }),
+          ),
+          dispatch(ActionStudent.GetComingSoonExercise(token)),
+        ]);
       };
       initializeData();
 
@@ -71,45 +70,64 @@ const ExercisesPage = () => {
       />
       <MainHeader title={'Latihan Soal'} />
       <ScrollView style={styles.bodyContainer}>
-        <View style={styles.lastOpenContainer}>
-          <Text style={styles.titleText}>Akan Datang</Text>
-          <View style={styles.lastOpenedProductContainer}>
-            <View style={[styles.row, { gap: 12, alignItems: 'flex-start' }]}>
-              <View style={styles.iconContainer}>
-                <MaterialCommunityIcons
-                  name={'file-document-edit-outline'}
-                  size={24}
-                  color={Colors.product900}
-                />
-              </View>
-              <View style={{ flex: 1 }}>
-                <View style={[styles.row, styles.titleContainer]}>
-                  <Text style={styles.lastOpenTitleText}>
-                    {lastOpenData.title}
-                  </Text>
-                  <View style={styles.tryoutCategoryContainer}>
-                    <Text style={styles.tryoutCategoryText}>
-                      {lastOpenData.category}
-                    </Text>
-                  </View>
+        {comingSoonExerciseData.data.data && (
+          <View style={styles.lastOpenContainer}>
+            <Text style={styles.titleText}>Akan Datang</Text>
+            <View style={styles.lastOpenedProductContainer}>
+              <View style={[styles.row, { gap: 12, alignItems: 'flex-start' }]}>
+                <View style={styles.iconContainer}>
+                  <MaterialCommunityIcons
+                    name={'file-document-edit-outline'}
+                    size={24}
+                    color={Colors.product900}
+                  />
                 </View>
-
-                <View style={[styles.row, { gap: 6, alignItems: 'center' }]}>
-                  <View style={styles.dateIconContainer}>
-                    <MaterialCommunityIcons
-                      name={'calendar-blank'}
-                      size={12}
-                      color={Colors.neutral500}
-                    />
+                <View style={{ flex: 1 }}>
+                  <View style={[styles.row, styles.titleContainer]}>
+                    <Text style={styles.lastOpenTitleText}>
+                      {comingSoonExerciseData.data.data.practice_set_name}
+                    </Text>
+                    <View style={styles.tryoutCategoryContainer}>
+                      <Text style={styles.tryoutCategoryText}>
+                        {
+                          comingSoonExerciseData.data.data.category
+                            .category_name
+                        }
+                      </Text>
+                    </View>
                   </View>
-                  <Text style={styles.lastOpenDescText}>
-                    {lastOpenData.desc}
-                  </Text>
+
+                  <View style={[styles.row, { gap: 6, alignItems: 'center' }]}>
+                    <View style={styles.dateIconContainer}>
+                      <MaterialCommunityIcons
+                        name={'calendar-blank'}
+                        size={12}
+                        color={Colors.neutral500}
+                      />
+                    </View>
+                    {comingSoonExerciseData.data.data.no_time_limit_flag === 0 ? (
+                      <Text style={styles.lastOpenDescText}>
+                        {formatDateMaterial(
+                          comingSoonExerciseData.data.data.start_time,
+                        )}{' '}
+                        {comingSoonExerciseData.data.data.end_time
+                          ? `- ${formatDateMaterial(
+                              comingSoonExerciseData.data.data.end_time,
+                            )}`
+                          : ''}
+                      </Text>
+                    ) : (
+                      <Text style={styles.lastOpenDescText}>
+                        Akses kapan saja
+                      </Text>
+                    )}
+                  </View>
                 </View>
               </View>
             </View>
           </View>
-        </View>
+        )}
+
         <TouchableOpacity
           onPress={() => navigation.navigate('MyExercisesPage')}
           style={[styles.row, styles.myProductContainer]}
@@ -133,26 +151,26 @@ const ExercisesPage = () => {
           <Text style={styles.exploreAllProductTitleText}>
             Jelajahi semua latihan soal!
           </Text>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('AllExercisesPage')}
-            style={[styles.row, styles.exploreAllProductTitleButtonContainer]}
-          >
-            <Text style={styles.exploreAllProductTitleButtonText}>
-              Lihat semua
-            </Text>
-            <Ionicons
-              name={'chevron-forward'}
-              size={14}
-              color={Colors.product500}
-            />
-          </TouchableOpacity>
+          {allExercisesSetData.data.total_items > 3 && (
+            <TouchableOpacity
+              onPress={() => navigation.navigate('AllExercisesPage')}
+              style={[styles.row, styles.exploreAllProductTitleButtonContainer]}
+            >
+              <Text style={styles.exploreAllProductTitleButtonText}>
+                Lihat semua
+              </Text>
+              <Ionicons
+                name={'chevron-forward'}
+                size={14}
+                color={Colors.product500}
+              />
+            </TouchableOpacity>
+          )}
         </View>
         <FlatList
           data={allExercisesSetData?.data?.data || []}
           renderItem={({ item }) => {
-            return (
-              <ExercisesCardComponent item={item} />
-            );
+            return <ExercisesCardComponent item={item} />;
           }}
           scrollEnabled={false}
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}

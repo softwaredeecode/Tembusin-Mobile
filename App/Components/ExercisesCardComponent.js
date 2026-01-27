@@ -25,23 +25,58 @@ import { formatDateMaterial } from '../Utils/Helper';
 const ExercisesCardComponents = ({ item }) => {
   const { width } = useWindowDimensions();
   const navigation = useNavigation();
+  const now = new Date();
+  const endTime = new Date(item.end_time);
   const buttonText = item.is_purchased
-    ? 'Mulai'
+    ? item.no_time_limit_flag === 0 && endTime < now
+      ? 'Review'
+      : item.attempts_used > 0 && item.attempts_used < item.max_attempts
+      ? 'Mulai Ulang'
+      : item.attempts_used >= item.max_attempts
+      ? 'Lihat Detail'
+      : 'Mulai'
     : item.access_type.id == 4
     ? 'Ambil'
     : 'Beli';
 
   const handleOnPress = item => {
-    if (!item.is_purchased) {
+    if (buttonText === 'Beli' || buttonText === 'Ambil') {
       navigation.navigate('DetailPurchasesExercises', {
-        exercisesSetId: item.id,
+        exercisesSetId: item.practice_set_id,
       });
-    } else {
-      // navigation.navigate('MaterialDetailPage', {
-      //   materialCollectionId: item.id,
-      // });
+    } else if (
+      buttonText === 'Mulai' ||
+      buttonText === 'Mulai Ulang' ||
+      buttonText === 'Lihat Detail' ||
+      buttonText === 'Review'
+    ) {
+      navigation.navigate('StartExercisesPage', {
+        exercisesSetId: item.practice_set_id,
+      });
     }
   };
+
+  const getScoreMeta = score => {
+    if (score >= 75) {
+      return {
+        label: 'Hebat',
+        color: Colors.success500,
+      };
+    }
+
+    if (score > 45) {
+      return {
+        label: 'Lumayan',
+        color: Colors.warning500,
+      };
+    }
+
+    return {
+      label: 'Kurang',
+      color: Colors.danger500,
+    };
+  };
+  const scoreMeta = getScoreMeta(item.last_score);
 
   return (
     <View style={styles.materialCardContainer}>
@@ -62,39 +97,38 @@ const ExercisesCardComponents = ({ item }) => {
           </View>
         </View>
         <View style={styles.badgeContainer}>
-          {/* {item.categoryCount > 0 && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{item.categoryCount} Kategori</Text>
-          </View>
-        )} */}
+          {item.sub_question_category.sub_question_category_name !== '' && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>
+                {item.sub_question_category.sub_question_category_name}
+              </Text>
+            </View>
+          )}
           {item.total_questions > 0 && (
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{item.total_questions} Soal</Text>
             </View>
           )}
-          {/* {item.time > 0 && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{item.time} Menit</Text>
-          </View>
-        )} */}
         </View>
       </View>
       <View style={styles.materialInfoDetailContainer}>
-        {item.start_time && (
-          <View style={styles.materialDateContainer}>
-            <View style={styles.dateIconContainer}>
-              <MaterialCommunityIcons
-                name={'calendar-blank'}
-                size={12}
-                color={Colors.neutral500}
-              />
-            </View>
+        <View style={styles.materialDateContainer}>
+          <View style={styles.dateIconContainer}>
+            <MaterialCommunityIcons
+              name={'calendar-blank'}
+              size={12}
+              color={Colors.neutral500}
+            />
+          </View>
+          {item.no_time_limit_flag === 0 ? (
             <Text style={styles.materialDateText}>
               {formatDateMaterial(item.start_time)}{' '}
               {item.end_time ? `- ${formatDateMaterial(item.end_time)}` : ''}
             </Text>
-          </View>
-        )}
+          ) : (
+            <Text style={styles.materialDateText}>Akses kapan saja</Text>
+          )}
+        </View>
         {item.description !== '' && (
           <View style={styles.materialDescContainer}>
             <View style={styles.dateIconContainer}>
@@ -118,23 +152,22 @@ const ExercisesCardComponents = ({ item }) => {
               <Text style={styles.seperateBuyText}>Dapat dibeli terpisah</Text>
             </View>
           )}
-        {item.chance && (
-          <View style={styles.materialDescContainer}>
-            <View style={styles.dateIconContainer}>
-              <FontAwesome name={'money'} size={10} color={Colors.neutral500} />
+        {item.is_purchased &&
+          (endTime > now || item.no_time_limit_flag === 1) && (
+            <View style={styles.materialDescContainer}>
+              <View style={styles.dateIconContainer}>
+                <FontAwesome
+                  name={'money'}
+                  size={10}
+                  color={Colors.neutral500}
+                />
+              </View>
+              <Text style={styles.materialDateText}>
+                {`Kesempatan: ${item.attempts_used}/${item.max_attempts}`}
+              </Text>
             </View>
-            <Text style={styles.materialDateText}>
-              {`Kesempatan: ${item.chance}`}
-            </Text>
-          </View>
-        )}
-        {item.seperateBuy && item.buyStatus !== 'purchased' && (
-          <View style={styles.seperateBuyContainer}>
-            <Ionicons name={'checkmark'} size={14} color={Colors.success500} />
-            <Text style={styles.seperateBuyText}>Dapat dibeli terpisah</Text>
-          </View>
-        )}
-        {item.payMethod == 'free' && (
+          )}
+        {item?.access_type?.id == 4 && !item?.is_purchased && (
           <View style={styles.seperateBuyContainer}>
             <Ionicons
               name={'time-outline'}
@@ -144,6 +177,18 @@ const ExercisesCardComponents = ({ item }) => {
             <Text style={styles.seperateBuyText}>Gratis untuk saat ini</Text>
           </View>
         )}
+        {item.is_purchased &&
+          endTime < now &&
+          item.no_time_limit_flag === 0 && (
+            <View style={styles.expiredContainer}>
+              <Ionicons
+                name={'time-outline'}
+                size={14}
+                color={Colors.neutral500}
+              />
+              <Text style={styles.expiredText}>Lewat batas waktu akses</Text>
+            </View>
+          )}
         {/* {item.closeDeadline && (
           <View style={styles.deadlineBuyContainer}>
             <Ionicons
@@ -157,17 +202,22 @@ const ExercisesCardComponents = ({ item }) => {
       </View>
       <View style={styles.materialBuyContainer}>
         {item.is_purchased ? (
-          item.score == null ? (
+          item.attempts_used === 0 ? (
             <View style={styles.scoreContainer}>
               <Entypo name={'dot-single'} size={22} color={Colors.neutral400} />
               <Text style={styles.notesText}>Belum ada!</Text>
             </View>
           ) : (
             <View style={styles.scoreContainer}>
-              <Entypo name={'dot-single'} size={22} color={Colors.success500} />
-              <Text style={styles.scoreText}>{item.score}</Text>
+              <Entypo name="dot-single" size={22} color={scoreMeta.color} />
+
+              <Text style={[styles.scoreText, { color: scoreMeta.color }]}>
+                {item.last_score}
+              </Text>
+
               <Text style={styles.dividerText}> | </Text>
-              <Text style={styles.notesText}>{item.notes}</Text>
+
+              <Text style={[styles.notesText]}>{scoreMeta.label}</Text>
             </View>
           )
         ) : (
@@ -208,6 +258,9 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
+    height: 190,
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
   },
   badgeContainer: {
     flexDirection: 'row',
@@ -352,11 +405,30 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     gap: 4,
   },
+  expiredContainer: {
+    marginTop: 8,
+    paddingVertical: 2,
+    paddingHorizontal: 4,
+    borderWidth: 1,
+    borderColor: Colors.neutral200,
+    backgroundColor: Colors.neutral50,
+    borderRadius: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 4,
+  },
   seperateBuyText: {
     fontFamily: Fonts.Regular,
     fontSize: 12,
     lineHeight: 18,
     color: Colors.success500,
+  },
+  expiredText: {
+    fontFamily: Fonts.Regular,
+    fontSize: 12,
+    lineHeight: 18,
+    color: Colors.neutral500,
   },
   deadlineBuyContainer: {
     marginTop: 8,

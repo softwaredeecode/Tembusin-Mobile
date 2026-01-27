@@ -131,6 +131,73 @@ export const GetMyMaterialCollectionData = (token, params = {}) => {
   };
 };
 
+export const GetLastReadMaterialCollectionDetailData = (token, params = {}) => {
+  return async dispatch => {
+    dispatch({
+      type: ActionTypes.GET_LAST_READ_MATERIAL_COLLECTION_DETAIL_DATA_REQUEST,
+    });
+
+    const controller = new AbortController();
+    const { signal } = controller;
+
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, 15000);
+
+    try {
+      const queryString = new URLSearchParams(params).toString();
+
+      const baseUrl = `${BASE_URL}${MATERIAL.lastReadMaterialCollection}${
+        queryString ? `?${queryString}` : ''
+      }`;
+
+      console.log(
+        '--- GET_LAST_READ_MATERIAL_COLLECTION_DETAIL_DATA_REQUEST ---',
+      );
+      console.log('URL:', baseUrl);
+
+      const response = await fetch(baseUrl, {
+        method: 'GET',
+        signal,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      clearTimeout(timeoutId);
+
+      const body = await response.json();
+
+      const materialLastReadCollectionDetailData = {
+        status: response.status,
+        ok: response.ok,
+        data: body,
+      };
+
+      console.log('Response Body:', materialLastReadCollectionDetailData);
+      console.log('--- END REQUEST ---');
+
+      if (!response.ok) {
+        return dispatch({
+          type: ActionTypes.GET_LAST_READ_MATERIAL_COLLECTION_DETAIL_DATA_FAILED,
+          payload: materialLastReadCollectionDetailData,
+        });
+      }
+
+      dispatch({
+        type: ActionTypes.GET_LAST_READ_MATERIAL_COLLECTION_DETAIL_DATA_SUCCESS,
+        payload: materialLastReadCollectionDetailData,
+      });
+    } catch (error) {
+      console.log(error);
+      dispatch({
+        type: ActionTypes.GET_LAST_READ_MATERIAL_COLLECTION_DETAIL_DATA_FAILED,
+        error: error.message,
+      });
+    }
+  };
+};
+
 export const GetMaterialCollectionDetailData = (
   token,
   materialCollectionId,
@@ -247,10 +314,7 @@ export const PurchaseMaterialCollection = async (
   }
 };
 
-export const GetMaterialDetailData = (
-  token,
-  materialId,
-) => {
+export const GetMaterialDetailData = (token, materialId) => {
   return async dispatch => {
     dispatch({ type: ActionTypes.GET_MATERIAL_DETAIL_DATA_REQUEST });
 

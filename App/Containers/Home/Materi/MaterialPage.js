@@ -26,32 +26,43 @@ import { Fonts } from '../../../Theme/Fonts';
 import { useDispatch, useSelector } from 'react-redux';
 import { ActionStudent } from '../../../Redux/Actions';
 import * as ActionTypes from '../../../Redux/Constants/Types';
+import { formatDateMaterial } from '../../../Utils/Helper';
 
 const MaterialPage = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
-
-  const lastOpenData = {
-    title: 'Materi SNBT 2025',
-    desc: 'Akses 3 Nov - 5 Nov',
-    progress: '50%',
-  };
-
-  const { materialCollectionData, materialSpinner } = useSelector(
-    state => state.material,
-  );
+  const {
+    materialCollectionData,
+    materialLastReadCollectionDetailData,
+    materialSpinner,
+  } = useSelector(state => state.material);
+  const progress =
+    Math.min(
+      Number(
+        materialLastReadCollectionDetailData?.data?.data[0]?.statistics
+          ?.progress_percentage,
+      ),
+      100,
+    ) || 0;
 
   useFocusEffect(
     useCallback(() => {
       const initializeData = async () => {
         const token = await AsyncStorage.getItem('auth_token');
 
-        dispatch(
-          ActionStudent.GetMaterialCollectionData(token, {
-            page: 1,
-            limit: 3,
-          }),
-        );
+        Promise.all([
+          dispatch(
+            ActionStudent.GetMaterialCollectionData(token, {
+              page: 1,
+              limit: 3,
+            }),
+          ),
+          dispatch(
+            ActionStudent.GetLastReadMaterialCollectionDetailData(token, {
+              limit: 1,
+            }),
+          ),
+        ]);
       };
       initializeData();
 
@@ -70,52 +81,77 @@ const MaterialPage = () => {
       <ScrollView style={styles.bodyContainer}>
         <View style={styles.lastOpenContainer}>
           <Text style={styles.titleText}>Terakhir Dipelajari</Text>
-          <View style={styles.lastOpenedProductContainer}>
-            <View style={[styles.row, { gap: 12, alignItems: 'flex-start' }]}>
-              <View style={styles.iconContainer}>
-                <MaterialCommunityIcons
-                  name={'book-open-blank-variant'}
-                  size={24}
-                  color={Colors.product900}
-                />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.lastOpenTitleText}>
-                  {lastOpenData.title}
-                </Text>
-                <View style={[styles.row, { gap: 6, alignItems: 'center' }]}>
-                  <View style={styles.dateIconContainer}>
-                    <MaterialCommunityIcons
-                      name={'calendar-blank'}
-                      size={12}
-                      color={Colors.neutral500}
-                    />
-                  </View>
-                  <Text style={styles.lastOpenDescText}>
-                    {lastOpenData.desc}
-                  </Text>
-                </View>
-                <View
-                  style={[
-                    styles.row,
-                    { gap: 10, alignItems: 'center', marginTop: 10 },
-                  ]}
-                >
-                  <View style={styles.progressWrapper}>
-                    <View
-                      style={[
-                        styles.progressFill,
-                        { width: lastOpenData.progress },
-                      ]}
-                    />
-                  </View>
-                  <Text style={styles.progressText}>
-                    {lastOpenData.progress}
-                  </Text>
-                </View>
-              </View>
+          {!materialLastReadCollectionDetailData.data ? (
+            <View style={styles.lastOpenedProductContainer}>
+              <Text style={styles.noneLasOpenProductText}>Belum ada</Text>
             </View>
-          </View>
+          ) : (
+            <TouchableOpacity
+              onPress={() => {
+                navigation.navigate('MaterialDetailPage', {
+                  materialCollectionId:
+                    materialLastReadCollectionDetailData.data.data[0].id,
+                });
+              }}
+              style={styles.lastOpenedProductContainer}
+            >
+              <View style={[styles.row, { gap: 12, alignItems: 'flex-start' }]}>
+                <View style={styles.iconContainer}>
+                  <MaterialCommunityIcons
+                    name={'book-open-blank-variant'}
+                    size={24}
+                    color={Colors.product900}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.lastOpenTitleText}>
+                    {
+                      materialLastReadCollectionDetailData.data.data[0]
+                        .material_collection_name
+                    }
+                  </Text>
+                  <View style={[styles.row, { gap: 6, alignItems: 'center' }]}>
+                    <View style={styles.dateIconContainer}>
+                      <MaterialCommunityIcons
+                        name={'calendar-blank'}
+                        size={12}
+                        color={Colors.neutral500}
+                      />
+                    </View>
+                    <Text style={styles.lastOpenDescText}>
+                      {formatDateMaterial(
+                        materialLastReadCollectionDetailData.data.data[0]
+                          .last_read_at,
+                      )}
+                    </Text>
+                  </View>
+                  <View
+                    style={[
+                      styles.row,
+                      { gap: 10, alignItems: 'center', marginTop: 10 },
+                    ]}
+                  >
+                    <View style={styles.progressWrapper}>
+                      <View
+                        style={[
+                          styles.progressFill,
+                          {
+                            width: `${progress}%`,
+                          },
+                        ]}
+                      />
+                    </View>
+                    <Text style={styles.progressText}>
+                      {
+                        materialLastReadCollectionDetailData.data.data[0]
+                          .statistics.progress_percentage
+                      }
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </TouchableOpacity>
+          )}
         </View>
         <TouchableOpacity
           onPress={() => navigation.navigate('MyMaterialPage')}
@@ -228,6 +264,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
     color: Colors.neutral500,
+  },
+  noneLasOpenProductText: {
+    fontFamily: Fonts.Medium,
+    fontSize: 14,
+    lineHeight: 18,
+    color: Colors.neutral500,
+    paddingVertical: 16,
+    textAlign: 'center'
   },
   row: {
     flexDirection: 'row',
