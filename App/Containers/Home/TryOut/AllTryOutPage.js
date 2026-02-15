@@ -35,7 +35,8 @@ import { ActionStudent } from '../../../Redux/Actions';
 
 const screenHeight = Dimensions.get('window').height;
 
-const AllTryOutPage = () => {
+const AllTryOutPage = (props) => {
+  const categoryId = props?.route?.params?.categoryId;
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const { allTryOutData, tryOutSpinner } = useSelector(state => state.tryout);
@@ -66,6 +67,7 @@ const AllTryOutPage = () => {
       ActionStudent.GetAllTryOutData(token, {
         page: 1,
         limit: 10,
+        category_id: categoryId,
       }),
     );
   };
@@ -85,6 +87,7 @@ const AllTryOutPage = () => {
       ActionStudent.GetAllTryOutData(token, {
         page: nextPage,
         limit: 10,
+        category_id: categoryId,
       }),
     );
 

@@ -117,7 +117,13 @@ const ForumPage = () => {
   /* ===================== UI ===================== */
   return (
     <View style={styles.container}>
-      <AuthenticatedHeader title="Forum" includeSearch />
+      <AuthenticatedHeader
+        title="Forum"
+        includeSearch
+        handleSearchClicked={() => {
+          navigation.navigate('ForumSearchPage');
+        }}
+      />
 
       {/* TAB SWITCH */}
       <View style={styles.switchContainer}>

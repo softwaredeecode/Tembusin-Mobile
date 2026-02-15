@@ -28,13 +28,20 @@ export const EXERCISES = {
   allExercisesSet: '/student/practice-sets/paginated',
   myExercisesSet: '/student/my-practice-sets/paginated',
   exercisesSetDetail: '/student/practice-sets',
-  comingSoonExercise: '/student/practice-sets/closest-upcoming'
+  comingSoonExercise: '/student/practice-sets/closest-upcoming',
+  buyExercise: '/student/practice-sets'
 }
 
 export const TRYOUT = {
   allTryOut: '/student/tryouts/paginated',
+  myTryOut: '/student/my-tryouts/paginated',
+  tryoutDetail: '/student/tryouts',
+  comingSoonTryout: 'student/tryouts/closest-upcoming',
 }
 
 export const PRODUCT = {
-  productList: '/student/products'
+  productList: '/student/products',
+  productDetail: '/student/products',
+  historyList: '/transactions/students/paginated',
+  checkStatus: '/transactions/students'
 }

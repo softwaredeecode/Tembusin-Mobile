@@ -6,7 +6,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Colors } from '../Theme/Colors';
 import { Fonts } from '../Theme/Fonts';
 
-const AuthenticatedHeader = ({ title, includeSearch = false }) => {
+const AuthenticatedHeader = ({ title, includeSearch = false, handleSearchClicked }) => {
   return (
     <View style={styles.container}>
       <View style={styles.headerTextContainer}>
@@ -14,7 +14,7 @@ const AuthenticatedHeader = ({ title, includeSearch = false }) => {
       </View>
 
       {includeSearch && (
-        <TouchableOpacity>
+        <TouchableOpacity onPress={handleSearchClicked}>
           <Ionicons name={'search'} size={18} color={Colors.white} />
         </TouchableOpacity>
       )}

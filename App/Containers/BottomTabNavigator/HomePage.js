@@ -10,6 +10,7 @@ import {
   Dimensions,
   Image,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -18,6 +19,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 //redux
 import { useSelector } from 'react-redux';
+import { BASE_URL } from '../../Api/GlobalUrl';
 
 //theme
 import { Colors } from '../../Theme/Colors';
@@ -25,6 +27,7 @@ import { Fonts } from '../../Theme/Fonts';
 
 //helper
 import { getInitial } from '../../Utils/Helper';
+import { showComingSoonToast } from '../../Components/ComingSoonToast';
 
 const { width } = Dimensions.get('window');
 
@@ -80,6 +83,9 @@ const HomePage = () => {
   });
   const viewConfigRef = useRef({ viewAreaCoveragePercentThreshold: 50 });
 
+  const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
+  const [leaderboardList, setLeaderboardList] = useState(null);
+
   useEffect(() => {
     const interval = setInterval(() => {
       let nextIndex = currentIndex + 1;
@@ -105,6 +111,97 @@ const HomePage = () => {
     getUserData();
   }, []);
 
+  //HANDLE LEADERBOARDS
+  const fetchLeaderboard = async () => {
+    const params = new URLSearchParams();
+    const roleId = userData?.role?.id;
+
+    console.log(userData, 'USERDATA');
+
+    params.append('limit', 20);
+    params.append('offset', 0);
+    if (roleId !== null) params.append('role_id', roleId);
+
+    const url = `${BASE_URL}/student/tryouts/leaderboard?${params.toString()}`;
+
+    try {
+      setLoadingLeaderboard(true);
+      const token = await AsyncStorage.getItem('auth_token');
+      console.log('📡 [FETCH LEADERBOARD] Request URL:', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log(
+        '📥 [FETCH LEADERBOARD] HTTP Status:',
+        response.status,
+        response.statusText,
+      );
+
+      const json = await response.json();
+      console.log('📦 [FETCH LEADERBOARD] Response:', json);
+
+      if (response.ok) {
+        setLeaderboardList(json.data);
+      } else {
+        throw json;
+      }
+    } catch (error) {
+      console.log('❌ [FETCH LEADERBOARD] Error:', error);
+      setLeaderboardList([]);
+    } finally {
+      setLoadingLeaderboard(false);
+    }
+  };
+
+  useEffect(() => {
+    if (userData) {
+      fetchLeaderboard();
+    }
+  }, [userData]);
+
+  const renderLeaderboardItem = ({ item, index }) => {
+    const isTopThree = item.rank <= 3;
+
+    return (
+      <View style={[styles.leaderboardItem, isTopThree && styles.topThreeItem]}>
+        {/* Rank */}
+        <View style={styles.rankContainer}>
+          <Text style={[styles.rankText, isTopThree && styles.topRankText]}>
+            #{item.rank}
+          </Text>
+        </View>
+
+        {/* Avatar */}
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>
+            {item.full_name?.charAt(0).toUpperCase()}
+          </Text>
+        </View>
+
+        {/* Info */}
+        <View style={styles.userInfo}>
+          <Text style={styles.userName} numberOfLines={1}>
+            {item.full_name}
+          </Text>
+          <Text style={styles.userRole}>{item.role_name}</Text>
+        </View>
+
+        {/* Score */}
+        <View style={styles.scoreContainer}>
+          <Text style={styles.scoreText}>{item.total_score}</Text>
+          <Text style={styles.scoreLabel}>Score</Text>
+        </View>
+      </View>
+    );
+  };
+
   return (
     <ScrollView style={styles.container} bounces={false} overScrollMode="never">
       <StatusBar barStyle="light-content" />
@@ -126,7 +223,7 @@ const HomePage = () => {
             </View>
           </View>
 
-          <Text style={styles.titlesText}>Juara</Text>
+          <Text style={styles.titlesText}>{userData?.role?.role_name}</Text>
         </View>
         <TouchableOpacity>
           <Ionicons
@@ -167,36 +264,11 @@ const HomePage = () => {
             ))}
           </View>
         </View>
-        {/* <View style={styles.menuContainer}>
-          <View style={styles.menuTitleTextContainer}>
-            <Text>Belajar UTBK SNBT</Text>
-          </View>
-          <FlatList
-            data={menu}
-            horizontal
-            keyExtractor={item => item.id}
-            contentContainerStyle={styles.menuListContainer}
-            showsHorizontalScrollIndicator={false}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                onPress={() => navigation.navigate(item.screen_name)}
-                style={styles.menuItem}
-              >
-                <View style={styles.menuItemContainer}>
-                  <MaterialCommunityIcons
-                    name={item.menu_icon}
-                    size={24}
-                    color={Colors.product900}
-                  />
-                </View>
-                <Text style={styles.menuText}>{item.menu_name}</Text>
-              </TouchableOpacity>
-            )}
-          />
-        </View> */}
         <View style={[styles.menuContainer, { marginTop: 16 }]}>
           <View style={styles.menuTitleTextContainer}>
-            <Text>Belajar TKA</Text>
+            <Text style={styles.menuTitleText}>
+              {userData?.role?.id === 4 ? 'Belajar CPNS' : 'Belajar UTBK SNBT'}
+            </Text>
           </View>
           <FlatList
             data={menu}
@@ -206,7 +278,15 @@ const HomePage = () => {
             showsHorizontalScrollIndicator={false}
             renderItem={({ item }) => (
               <TouchableOpacity
-                onPress={() => navigation.navigate(item.screen_name)}
+                onPress={() => {
+                  if (item.id === '4') {
+                    showComingSoonToast();
+                  } else {
+                    navigation.navigate(item.screen_name, {
+                      categoryId: userData?.role?.id === 4 ? 3 : 1,
+                    });
+                  }
+                }}
                 style={styles.menuItem}
               >
                 <View style={styles.menuItemContainer}>
@@ -223,15 +303,62 @@ const HomePage = () => {
         </View>
         <View style={[styles.menuContainer, { marginTop: 16 }]}>
           <View style={styles.menuTitleTextContainer}>
-            <Text>Leaderboard</Text>
+            <Text style={styles.menuTitleText}>
+              {userData?.role?.id === 4 ? 'Belajar PPPK' : 'Belajar TKA'}
+            </Text>
           </View>
-          <View style={styles.leaderboardContainer}>
-            <Image
-              source={require('../../Assets/Images/dummyLeaderboard.png')}
-              resizeMode="cover"
+          <FlatList
+            data={menu}
+            horizontal
+            keyExtractor={item => item.id}
+            contentContainerStyle={styles.menuListContainer}
+            showsHorizontalScrollIndicator={false}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                onPress={() => {
+                  console.log(item.id);
+                  if (item.id === '4') {
+                    showComingSoonToast();
+                  } else {
+                    navigation.navigate(item.screen_name, {
+                      categoryId: userData?.role?.id === 4 ? 4 : 2,
+                    });
+                  }
+                }}
+                style={styles.menuItem}
+              >
+                <View style={styles.menuItemContainer}>
+                  <MaterialCommunityIcons
+                    name={item.menu_icon}
+                    size={24}
+                    color={Colors.product900}
+                  />
+                </View>
+                <Text style={styles.menuText}>{item.menu_name}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+        {loadingLeaderboard ? (
+          <View style={[styles.menuContainer, styles.loadingContainer]}>
+            <ActivityIndicator size="small" color="#6366F1" />
+          </View>
+        ) : leaderboardList?.length > 0 ? (
+          <View style={[styles.menuContainer, { marginTop: 16 }]}>
+            <View style={styles.menuTitleTextContainer}>
+              <Text style={styles.menuTitleText}>Leaderboard</Text>
+            </View>
+
+            <FlatList
+              data={leaderboardList}
+              scrollEnabled={false}
+              keyExtractor={item => item.user_id.toString()}
+              renderItem={renderLeaderboardItem}
+              contentContainerStyle={{ paddingVertical: 8 }}
+              showsVerticalScrollIndicator={false}
             />
           </View>
-        </View>
+        ) : null}
       </View>
     </ScrollView>
   );
@@ -359,10 +486,95 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.product50,
     borderRadius: 4,
   },
-  leaderboardContainer: {
+  menuTitleText: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontFamily: Fonts.Medium,
+    color: Colors.neutral900,
+  },
+
+  leaderboardItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    borderRadius: 14,
+    backgroundColor: '#F9FAFB',
+    marginBottom: 10,
+    marginHorizontal: 10,
+  },
+
+  topThreeItem: {
+    backgroundColor: '#EEF2FF',
+  },
+
+  rankContainer: {
+    width: 40,
+    alignItems: 'center',
+  },
+
+  rankText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+
+  topRankText: {
+    color: '#4338CA',
+    fontWeight: '800',
+  },
+
+  avatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#6366F1',
     justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: 12,
+    marginRight: 12,
+  },
+
+  avatarText: {
+    color: '#FFF',
+    fontWeight: '700',
+    fontSize: 16,
+  },
+
+  userInfo: {
+    flex: 1,
+  },
+
+  userName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111827',
+  },
+
+  userRole: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+
+  scoreContainer: {
+    alignItems: 'flex-end',
+  },
+
+  loadingContainer: {
+    marginTop: 16,
+    paddingVertical: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  scoreText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#10B981',
+  },
+
+  scoreLabel: {
+    fontSize: 11,
+    color: '#6B7280',
   },
 });
 

@@ -10,7 +10,7 @@ export const GetAllExercisesSetData = (token, params = {}) => {
 
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 15000);
+    }, 30000);
 
     try {
       const queryString = new URLSearchParams(params).toString();
@@ -75,7 +75,7 @@ export const GetMyExercisesSetData = (token, params = {}) => {
 
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 15000);
+    }, 30000);
 
     try {
       const queryString = new URLSearchParams(params).toString();
@@ -143,7 +143,7 @@ export const GetExercisesSetDetailData = (token, exercisesSetId) => {
 
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 15000);
+    }, 30000);
 
     try {
       const baseUrl = `${BASE_URL}${EXERCISES.exercisesSetDetail}/${exercisesSetId}`;
@@ -207,7 +207,7 @@ export const GetExercisesDetailContent = (
 
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 15000);
+    }, 30000);
 
     try {
       const baseUrl = `${BASE_URL}${EXERCISES.exercisesSetDetail}/${exercisesSetId}/questions/${questionId}`;
@@ -268,7 +268,7 @@ export const StartNewAttempt = (token, exercisesSetId) => {
 
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 15000);
+    }, 30000);
 
     try {
       const baseUrl = `${BASE_URL}${EXERCISES.exercisesSetDetail}/${exercisesSetId}/attempts`;
@@ -332,7 +332,7 @@ export const SubmitAnswer = async (
 
   const timeoutId = setTimeout(() => {
     controller.abort();
-  }, 15000);
+  }, 30000);
 
   try {
     const baseUrl = `${BASE_URL}${EXERCISES.exercisesSetDetail}/${exercisesSetId}/attempts/${attemptId}/answers`;
@@ -381,7 +381,7 @@ export const SubmitAttempt = async (token, exercisesSetId, attemptId) => {
 
   const timeoutId = setTimeout(() => {
     controller.abort();
-  }, 15000);
+  }, 30000);
 
   try {
     const baseUrl = `${BASE_URL}${EXERCISES.exercisesSetDetail}/${exercisesSetId}/attempts/${attemptId}/submit`;
@@ -431,7 +431,7 @@ export const GetAttemptList = (token, exercisesSetId) => {
 
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 15000);
+    }, 30000);
 
     try {
       const baseUrl = `${BASE_URL}${EXERCISES.exercisesSetDetail}/${exercisesSetId}/attempts`;
@@ -491,14 +491,12 @@ export const GetComingSoonExercise = token => {
 
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 15000);
+    }, 30000);
 
     try {
       const baseUrl = `${BASE_URL}${EXERCISES.comingSoonExercise}`;
 
-      console.log(
-        '--- GET_COMMING_SOON_EXERCISE_REQUEST ---',
-      );
+      console.log('--- GET_COMMING_SOON_EXERCISE_REQUEST ---');
       console.log('URL:', baseUrl);
 
       const response = await fetch(baseUrl, {
@@ -541,4 +539,59 @@ export const GetComingSoonExercise = token => {
       });
     }
   };
+};
+
+export const PurchaseExercise = async (
+  token,
+  exerciseId,
+  price,
+) => {
+  const controller = new AbortController();
+  const { signal } = controller;
+
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, 30000);
+
+  try {
+    const baseUrl = `${BASE_URL}${EXERCISES.buyExercise}/${exerciseId}/purchase`;
+
+    console.log('--- PURCHASE_EXERCISE_REQUEST ---');
+    console.log('URL:', baseUrl);
+
+    const response = await fetch(baseUrl, {
+      method: 'POST',
+      signal,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        practice_set_id: exerciseId,
+        payment_method: 'token',
+      }),
+    });
+
+    clearTimeout(timeoutId);
+
+    const body = await response.json();
+
+    const result = {
+      status: response.status,
+      ok: response.ok,
+      data: body,
+    };
+
+    console.log('Response Body:', result);
+    console.log('--- END REQUEST ---');
+
+    return result;
+  } catch (error) {
+    clearTimeout(timeoutId);
+
+    return {
+      ok: false,
+      error: error.name === 'AbortError' ? 'Request timeout' : error.message,
+    };
+  }
 };

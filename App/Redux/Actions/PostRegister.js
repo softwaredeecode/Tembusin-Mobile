@@ -10,7 +10,7 @@ export const PostRegister = payload => {
 
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 15000); // 15 detik timeout
+    }, 30000); // 15 detik timeout
 
     try {
       const url = `${BASE_URL}${AUTH.register}`;
@@ -88,7 +88,7 @@ export const RegisterVerifyOtp = payload => {
 
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 15000); // 15 detik timeout
+    }, 30000); // 15 detik timeout
 
     try {
       const url = `${BASE_URL}${AUTH.verifyOtpRegister}`;
@@ -166,7 +166,7 @@ export const RegisterResendOtp = payload => {
 
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 15000); // 15 detik timeout
+    }, 30000); // 15 detik timeout
 
     try {
       const url = `${BASE_URL}${AUTH.resendOtpRegister}`;

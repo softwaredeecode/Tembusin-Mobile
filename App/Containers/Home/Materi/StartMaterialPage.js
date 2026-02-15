@@ -284,7 +284,7 @@ const StartMaterialPage = props => {
               lineCap="round"
             ></AnimatedCircularProgress>
             <Text style={styles.progressText}>
-              {materialCollectionDetailData.data.statistics.progress_percentage}
+              {Math.round(materialCollectionDetailData.data.statistics.progress_percentage)}
               %
             </Text>
           </View>

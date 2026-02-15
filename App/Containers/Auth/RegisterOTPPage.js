@@ -104,18 +104,20 @@ const RegisterOTPPage = props => {
     const otpCode = otp.join('');
     const payload = {
       email: registerData.email.toLowerCase(),
-      field_type: registerData.selectedAccountType === 'ptn' ? 1 : 2,
+      field_type: registerData.selectedAccountType === 'ptn' ? 2 : 1,
       password: registerData.password,
-      username: registerData.fullname,
+      full_name: registerData.fullname,
       otp_code: otpCode,
     };
     const result = await dispatch(ActionStudent.RegisterVerifyOtp(payload));
+    console.log('RegisterVerifyOtpResponse: ', result.data);
     if (result.status === 201) {
       const data = {
+        userDetail: result.data,
         selectedAccountType: registerData.selectedAccountType,
-        fullname: registerData.fullname,
-        email: registerData.email,
-        password: registerData.password,
+        // fullname: registerData.fullname,
+        // email: registerData.email,
+        // password: registerData.password,
       };
       navigation.navigate('RegisterCompleteDataPage', {
         data,

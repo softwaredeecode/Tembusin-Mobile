@@ -10,7 +10,7 @@ export const Login = payload => {
 
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 15000); // 15 detik timeout
+    }, 30000); // 15 detik timeout
 
     try {
       // Print URL dan request payload
@@ -41,16 +41,19 @@ export const Login = payload => {
       console.log('--- END REQUEST ---');
 
       if (!response.ok) {
-        return dispatch({
+        dispatch({
           type: ActionTypes.LOGIN_FAILED,
           payload: { loginResponse },
         });
+        return loginResponse;
       }
 
       dispatch({
         type: ActionTypes.LOGIN_SUCCESS,
         payload: { loginResponse },
       });
+
+      return loginResponse;
     } catch (error) {
       console.error('--- LOGIN ERROR ---');
       console.error('ERROR MESSAGE:', error.message);

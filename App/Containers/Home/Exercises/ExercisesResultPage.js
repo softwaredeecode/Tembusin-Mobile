@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    width: 112,
+    minWidth: 112,
     height: 112
   },
   scoreText: {

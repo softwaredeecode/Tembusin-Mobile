@@ -19,7 +19,7 @@ import {
   AddComments,
   AddPost,
 } from './Forum';
-import { GetProductList } from './Product';
+import { GetProductList, GetProductDetailData, PurchaseProduct, GetHistoryList, CheckStatus } from './Product';
 import {
   GetAllExercisesSetData,
   GetMyExercisesSetData,
@@ -30,8 +30,20 @@ import {
   SubmitAttempt,
   GetAttemptList,
   GetComingSoonExercise,
+  PurchaseExercise,
 } from './Exercises';
-import { GetAllTryOutData } from './TryOut';
+import {
+  GetAllTryOutData,
+  GetMyTryOutData,
+  GetTryOutDetailData,
+  PurchaseTryout,
+  GetAttemptListTryout,
+  GetTryoutQuestionDetail,
+  StartNewAttemptTryOut,
+  SubmitTryoutAnswer,
+  SubmitTryOutAttempt,
+  GetComingSoonTryout,
+} from './TryOut';
 
 export const ActionStudent = {
   PostRegister,
@@ -49,7 +61,6 @@ export const ActionStudent = {
   PurchaseMaterialCollection,
   GetMaterialDetailData,
   GetLastReadMaterialCollectionDetailData,
-  GetProductList,
   GetAllExercisesSetData,
   GetMyExercisesSetData,
   GetExercisesSetDetailData,
@@ -58,6 +69,21 @@ export const ActionStudent = {
   SubmitAnswer,
   SubmitAttempt,
   GetAttemptList,
+  PurchaseExercise,
   GetComingSoonExercise,
   GetAllTryOutData,
+  GetMyTryOutData,
+  GetTryOutDetailData,
+  StartNewAttemptTryOut,
+  PurchaseTryout,
+  GetAttemptListTryout,
+  GetTryoutQuestionDetail,
+  SubmitTryoutAnswer,
+  SubmitTryOutAttempt,
+  GetComingSoonTryout,
+  GetProductList,
+  GetProductDetailData,
+  PurchaseProduct,
+  GetHistoryList,
+  CheckStatus
 };

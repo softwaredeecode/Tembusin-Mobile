@@ -6,18 +6,20 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 // components
 import MainHeader from '../../../Components/MainHeader';
 import BottomModal from '../../../Components/BottomModal';
+import ErrorModal from '../../../Components/ErrorModal';
 
 //theme
 import { Colors } from '../../../Theme/Colors';
@@ -44,11 +46,55 @@ const PurchaseMaterialDetailPage = props => {
   const [expanded, setExpanded] = useState({});
   const [showBuyWithTokenModal, setShowBuyWithTokenModal] = useState(false);
   const [loadingBuyMaterial, setLoadingBuyMaterial] = useState(false);
-  const myToken = 50;
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const accessId = materialCollectionDetailData?.data?.access_type?.id ?? null;
   const canBuyWithToken = accessId === 1 || accessId === 3;
-  const canJoinMember = accessId === 1 || accessId === 2;
   const canTakeFree = accessId === 4;
+
+  const [myToken, setMyToken] = useState(null);
+
+  const getMyToken = async () => {
+    const url = `${BASE_URL}/user/token-balance`;
+
+    try {
+      const token = await AsyncStorage.getItem('auth_token');
+      console.log('📡 [FETCH MY TOKEN] Request URL:', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log(
+        '📥 [FETCH MY TOKEN] HTTP Status:',
+        response.status,
+        response.statusText,
+      );
+
+      const json = await response.json();
+      console.log('📦 [FETCH MY TOKEN] Response:', json);
+
+      if (response.ok) {
+        setMyToken(json.token_balance);
+      } else {
+        throw json;
+      }
+    } catch (error) {
+      console.log('❌ [FETCH MY TOKEN] Error:', error);
+    } finally {
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      getMyToken();
+    }, []),
+  );
 
   const toggleExpand = key => {
     setExpanded(prev => ({
@@ -59,16 +105,32 @@ const PurchaseMaterialDetailPage = props => {
 
   const handlePurchaseMaterialCollection = async () => {
     setLoadingBuyMaterial(true);
-    const token = await AsyncStorage.getItem('auth_token');
-    const response = await dispatch(
-      ActionStudent.PurchaseMaterialCollection(
+    try {
+      const token = await AsyncStorage.getItem('auth_token');
+      const response = await ActionStudent.PurchaseMaterialCollection(
         token,
         materialCollectionId,
-        materialCollectionDetailData.data.price_token,
-      ),
-    );
-    setLoadingBuyMaterial(false);
-    setShowBuyWithTokenModal(false);
+        // materialCollectionDetailData.data.price_token,
+      );
+      console.log(response, 'INI RESPONSE PurchaseMaterialCollection');
+      if (response.status === 201) {
+        setShowBuyWithTokenModal(false);
+        if (response.data) {
+          navigation.replace('ThankyouPageMaterial', {
+            materialCollectionDetailDataPrev: materialCollectionDetailData,
+            paymentData: response.data,
+          });
+        }
+      } else {
+        setShowErrorModal(true);
+        setErrorMessage(response.data?.message || 'Terjadi kesalahan');
+      }
+    } catch (error) {
+      setShowErrorModal(true);
+      setErrorMessage('Terjadi kesalahan sistem');
+    } finally {
+      setLoadingBuyMaterial(false);
+    }
   };
 
   useEffect(() => {
@@ -370,18 +432,11 @@ const PurchaseMaterialDetailPage = props => {
             </TouchableOpacity>
           )}
 
-          {canJoinMember && (
-            <TouchableOpacity
-              onPress={() => {}}
-              style={styles.joinMemberContainer}
-            >
-              <Text style={styles.joinMemberText}>Gabung Member</Text>
-            </TouchableOpacity>
-          )}
-
           {canTakeFree && (
             <TouchableOpacity
-              onPress={() => {}}
+              onPress={() => {
+                handlePurchaseMaterialCollection();
+              }}
               style={styles.joinMemberContainer}
             >
               <Text style={styles.joinMemberText}>Ambil</Text>
@@ -535,16 +590,25 @@ const PurchaseMaterialDetailPage = props => {
         <View style={bottomSheetModalStyles.buttonContainer}>
           {myToken >= materialCollectionDetailData.data.price_token ? (
             <TouchableOpacity
+              disabled={loadingBuyMaterial}
               onPress={() => {
                 handlePurchaseMaterialCollection();
               }}
               style={bottomSheetModalStyles.buyButtonContainer}
             >
-              <Text style={bottomSheetModalStyles.buyButtonText}>Beli</Text>
+              {loadingBuyMaterial ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={bottomSheetModalStyles.buyButtonText}>Beli</Text>
+              )}
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
               style={bottomSheetModalStyles.topUpButtonContainer}
+              onPress={() => {
+                setShowBuyWithTokenModal(false);
+                navigation.navigate('MainTabs', { screen: 'ProductPage' });
+              }}
             >
               <Text style={bottomSheetModalStyles.topUpButtonText}>
                 Isi Token
@@ -553,6 +617,14 @@ const PurchaseMaterialDetailPage = props => {
           )}
         </View>
       </BottomModal>
+      <ErrorModal
+        visible={showErrorModal}
+        description={errorMessage}
+        onClose={() => {
+          setShowErrorModal(false);
+          setErrorMessage('');
+        }}
+      />
     </View>
   );
 };

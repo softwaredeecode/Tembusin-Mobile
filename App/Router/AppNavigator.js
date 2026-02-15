@@ -3,6 +3,7 @@ import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useDispatch } from 'react-redux';
 
 import { Colors } from '../Theme/Colors';
 import AuthNavigator from './AuthNavigator';
@@ -11,6 +12,7 @@ import { AuthContext } from '../Context/AuthContext';
 
 const RootNavigator = () => {
   const insets = useSafeAreaInsets();
+  const dispatch = useDispatch();
 
   const [isLoggedIn, setIsLoggedIn] = useState(null);
   const [currentRoute, setCurrentRoute] = useState(null);
@@ -25,9 +27,13 @@ const RootNavigator = () => {
 
   const authContext = useMemo(
     () => ({
-      signIn: () => setIsLoggedIn(true),
+      signIn: async () => {
+        const token = await AsyncStorage.getItem('auth_token');
+        setIsLoggedIn(!!token);
+      },
       signOut: async () => {
         await AsyncStorage.clear();
+        dispatch({ type: 'AUTH/LOGOUT' });
         setIsLoggedIn(false);
       },
     }),

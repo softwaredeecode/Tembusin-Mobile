@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import React from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -12,7 +12,12 @@ import { rupiahFormat } from '../Utils/Helper';
 
 const ProductPackageCardComponent = ({ item, navigation }) => {
   return (
-    <View style={styles.packageProductContainer}>
+    <TouchableOpacity
+      onPress={() => {
+        navigation.navigate('ProductDetailPurchasePage', { productData: item });
+      }}
+      style={styles.packageProductContainer}
+    >
       <View style={styles.packageProductInfoContainer}>
         <View style={styles.row}>
           <Text style={styles.productPackageTitleText}>
@@ -43,7 +48,9 @@ const ProductPackageCardComponent = ({ item, navigation }) => {
                 color={Colors.neutral500}
               />
             </View>
-            <Text style={styles.amountText}>{item?.package_items?.practice_set_count} latihan soal</Text>
+            <Text style={styles.amountText}>
+              {item?.package_items?.practice_set_count} latihan soal
+            </Text>
           </View>
           <View style={[styles.row, { marginTop: 8 }]}>
             <View style={styles.checkIconContainer}>
@@ -63,7 +70,7 @@ const ProductPackageCardComponent = ({ item, navigation }) => {
       <View style={styles.packageProductPriceContainer}>
         <View style={[styles.row, { gap: 6 }]}>
           <FontAwesome name={'money'} size={16} color={Colors.warning500} />
-          <Text style={styles.priceToken}>{item.final_price_token}</Text>
+          <Text style={styles.priceToken}>{item.price_token}</Text>
         </View>
 
         <Text style={{ color: Colors.neutral200 }}>|</Text>
@@ -95,7 +102,7 @@ const ProductPackageCardComponent = ({ item, navigation }) => {
           )}
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 

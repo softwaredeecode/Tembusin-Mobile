@@ -39,13 +39,13 @@ const RegisterAccountPage = props => {
   const handleRegister = async () => {
     const payload = {
       email: email.toLowerCase(),
-      field_type: selectedAccountType == 'ptn' ? 1 : 2,
+      field_type: selectedAccountType == 'ptn' ? 2 : 1,
       password: password,
-      username: fullname,
+      full_name: fullname,
     };
     const result = await dispatch(ActionStudent.PostRegister(payload));
     console.log(result, 'RESPONSE')
-    if (result.status === 201) {
+    if (result.status === 200) {
       const data = {
         selectedAccountType: selectedAccountType,
         fullname: fullname,
@@ -80,10 +80,11 @@ const RegisterAccountPage = props => {
           />
           <View style={styles.divider}>
             <TextInputComponent
-              title={'Email atau username'}
+              title={'Email'}
               placeholder={'Contoh: john.doe@email.com'}
               setValue={setEmail}
               value={email}
+              autoCapitalize={false}
             />
           </View>
           <View style={styles.divider}>

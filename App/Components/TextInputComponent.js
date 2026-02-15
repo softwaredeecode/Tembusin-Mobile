@@ -21,6 +21,7 @@ const TextInputComponent = ({
   setValue,
   disabled,
   leftIcon,
+  autoCapitalize = true,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -52,6 +53,7 @@ const TextInputComponent = ({
           onChangeText={text => setValue(text)}
           placeholderTextColor={Colors.neutral400}
           keyboardType={keyboardType}
+          autoCapitalize={!autoCapitalize ? 'none' : null}
         />
 
         {inputType === 'password' && (

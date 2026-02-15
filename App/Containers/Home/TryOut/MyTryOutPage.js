@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   StatusBar,
@@ -8,11 +8,13 @@ import {
   FlatList,
   ScrollView,
   TouchableWithoutFeedback,
+  ActivityIndicator,
   Keyboard,
 } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // components
 import MainHeader from '../../../Components/MainHeader';
@@ -22,13 +24,21 @@ import BottomModal from '../../../Components/BottomModal';
 import FilterButton from '../../../Components/FilterButton';
 import CheckboxRow from '../../../Components/CheckboxRow';
 import DatePickerField from '../../../Components/DatePickerField';
+import ListEmptyComponent from '../../../Components/ListEmptyComponents';
 
 //theme
 import { Colors } from '../../../Theme/Colors';
 import { Fonts } from '../../../Theme/Fonts';
 
-const MyTryOutPage = () => {
+// redux
+import { useDispatch, useSelector } from 'react-redux';
+import { ActionStudent } from '../../../Redux/Actions';
+
+const MyTryOutPage = (props) => {
+  const categoryId = props?.route?.params?.categoryId;
   const navigation = useNavigation();
+  const dispatch = useDispatch();
+  const { myTryOutData, tryOutSpinner } = useSelector(state => state.tryout);
   const [searchMaterial, setSearchMaterial] = useState('');
   const [filterVisible, setFilterVisible] = useState(false);
   const [filter, setFilter] = useState({
@@ -40,72 +50,53 @@ const MyTryOutPage = () => {
   });
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+  const [page, setPage] = useState(1);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const openFilter = () => setFilterVisible(true);
   const closeFilter = () => setFilterVisible(false);
 
-  const myMaterialData = [
-    {
-      materialTitle: 'Try Out SNBT 3',
-      date: 'Akses 3 Nov - 5 Nov',
-      desc: 'Untuk memberi <b>SNBT Juara.</b>',
-      category: 'SNBT',
-      seperateBuy: false,
-      categoryCount: 4,
-      question: 20,
-      time: 90,
-      score: null,
-      notes: '',
-      buyStatus: 'purchased',
-      status: 'readyToStart',
-    },
-    {
-      materialTitle: 'Try Out SNBT 1',
-      date: 'Akses 3 Nov - 5 Nov',
-      desc: '',
-      category: 'SNBT',
-      seperateBuy: true,
-      categoryCount: 3,
-      question: 20,
-      time: 90,
-      scroe: null,
-      notes: '',
-      buyStatus: 'purchased',
-      status: 'notReadyToStart',
-    },
-    {
-      materialTitle: 'Try Out UTBK 1',
-      date: 'Akses 3 Nov - 5 Nov',
-      desc: 'Untuk memberi <b>SNBT Juara.</b>',
-      category: 'SNBT',
-      seperateBuy: false,
-      categoryCount: 2,
-      question: 20,
-      time: 90,
-      score: 100,
-      notes: 'Hebat!',
-      buyStatus: 'purchased',
-      status: 'done',
-    },
-    {
-      materialTitle: 'Try Out SNBT 3',
-      date: 'Akses 3 Nov - 5 Nov',
-      desc: 'Untuk memberi <b>SNBT Juara.</b>',
-      category: 'SNBT',
-      seperateBuy: false,
-      categoryCount: 4,
-      question: 20,
-      time: 90,
-      score: 100,
-      notes: 'Hebat!',
-      buyStatus: 'purchased',
-      status: 'done',
-    },
-  ];
+  const loadMoreData = async () => {
+    if (isLoadingMore) return;
 
-  const handleOnPress = item => {
-    navigation.navigate('DetailStartTryOut', { selectedItem: item });
+    const totalPages = myTryOutData?.data?.total_pages || 1;
+    if (page >= totalPages) return;
+
+    setIsLoadingMore(true);
+
+    const nextPage = page + 1;
+    const token = await AsyncStorage.getItem('auth_token');
+
+    await dispatch(
+      ActionStudent.GetMyTryOutData(token, {
+        page: nextPage,
+        limit: 10,
+        category_id: categoryId,
+      }),
+    );
+
+    setPage(nextPage);
+    setIsLoadingMore(false);
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      const initializeData = async () => {
+        const token = await AsyncStorage.getItem('auth_token');
+
+        dispatch(
+          ActionStudent.GetMyTryOutData(token, {
+            page: 1,
+            limit: 10,
+            category_id: categoryId,
+          }),
+        );
+      };
+      initializeData();
+
+      return () => {};
+    }, [dispatch]),
+  );
 
   return (
     <View style={styles.container}>
@@ -132,11 +123,29 @@ const MyTryOutPage = () => {
       </TouchableWithoutFeedback>
       <View style={styles.bodyContainer}>
         <FlatList
-          data={myMaterialData}
-          renderItem={({ item }) => <TryOutCardComponent item={item} onPress={handleOnPress} />}
+          data={myTryOutData.data.data || []}
+          renderItem={({ item }) => <TryOutCardComponent item={item} />}
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
           contentContainerStyle={{ paddingBottom: 20 }}
           keyboardDismissMode="on-drag"
+          onEndReached={loadMoreData}
+          onEndReachedThreshold={0.3}
+          ListFooterComponent={
+            isLoadingMore ? (
+              <View style={{ paddingVertical: 16 }}>
+                <ActivityIndicator size="small" color={Colors.product900} />
+              </View>
+            ) : null
+          }
+          ListEmptyComponent={
+            !tryOutSpinner ? (
+              <ListEmptyComponent
+                title={'Belum ada try out yang tersedia'}
+                desc={'Mulai eksplorasi dan akses try out-mu di sini.'}
+                iconName={'book-open-blank-variant'}
+              />
+            ) : null
+          }
         />
       </View>
       <BottomModal

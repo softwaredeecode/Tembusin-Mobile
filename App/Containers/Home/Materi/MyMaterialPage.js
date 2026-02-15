@@ -34,7 +34,8 @@ import { Fonts } from '../../../Theme/Fonts';
 import { useDispatch, useSelector } from 'react-redux';
 import { ActionStudent } from '../../../Redux/Actions';
 
-const MyMaterialPage = () => {
+const MyMaterialPage = (props) => {
+  const categoryId = props?.route?.params?.categoryId
   const dispatch = useDispatch();
   const [searchMaterial, setSearchMaterial] = useState('');
   const [filterVisible, setFilterVisible] = useState(false);
@@ -72,6 +73,7 @@ const MyMaterialPage = () => {
       ActionStudent.GetMyMaterialCollectionData(token, {
         page: 1,
         limit: 10,
+        category_id: categoryId
       }),
     );
   };
@@ -91,6 +93,7 @@ const MyMaterialPage = () => {
       ActionStudent.GetMyMaterialCollectionData(token, {
         page: nextPage,
         limit: 10,
+        category_id: categoryId
       }),
     );
 

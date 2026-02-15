@@ -10,7 +10,7 @@ export const GetLatestForumData = (payload, token) => {
 
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 15000); // 15 detik timeout
+    }, 30000); // 15 detik timeout
 
     try {
       const baseUrl = `${BASE_URL}${FORUM.latest}`;
@@ -74,7 +74,7 @@ export const GetTrendingForumData = (payload, token) => {
 
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 15000); // 15 detik timeout
+    }, 30000); // 15 detik timeout
 
     try {
       const baseUrl = `${BASE_URL}${FORUM.trending}`;
@@ -138,7 +138,7 @@ export const GetComments = (postId, payload, token) => {
 
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 15000); // 15 detik timeout
+    }, 30000); // 15 detik timeout
 
     try {
       const baseUrl = `${BASE_URL}${FORUM.comments(postId)}`;
@@ -210,7 +210,7 @@ export const AddComments = (payload, token) => {
 
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 15000); // 15 detik timeout
+    }, 30000); // 15 detik timeout
 
     try {
       const url = `${BASE_URL}${FORUM.addComment}`;
@@ -277,7 +277,7 @@ export const AddPost = (payload, token) => {
 
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 15000); // 15 detik timeout
+    }, 30000); // 15 detik timeout
 
     try {
       const url = `${BASE_URL}${FORUM.addPost}`;

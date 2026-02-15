@@ -13,12 +13,19 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { Colors } from '../Theme/Colors';
 import { Fonts } from '../Theme/Fonts';
 
-const InputDropdown = ({ title, value, setValue, placeholder, options = [] }) => {
+const InputDropdown = ({
+  title,
+  value,
+  setValue,
+  placeholder,
+  options = [],
+  disabled,
+}) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const displayText = value || placeholder || 'Pilih opsi';
   const isPlaceholder = !value;
 
-  const handleSelect = (item) => {
+  const handleSelect = item => {
     setValue(item);
     setShowDropdown(false);
   };
@@ -29,8 +36,9 @@ const InputDropdown = ({ title, value, setValue, placeholder, options = [] }) =>
 
       <TouchableOpacity
         onPress={() => setShowDropdown(true)}
-        style={styles.inputContainer}
+        style={disabled ? styles.disableInputContaienr : styles.inputContainer}
         activeOpacity={0.7}
+        disabled={disabled}
       >
         <Text
           style={[styles.textValue, isPlaceholder && styles.placeholderText]}
@@ -39,11 +47,7 @@ const InputDropdown = ({ title, value, setValue, placeholder, options = [] }) =>
           {displayText}
         </Text>
 
-        <Icon
-          name="chevron-down-outline"
-          size={20}
-          color={Colors.neutral500}
-        />
+        <Icon name="chevron-down-outline" size={20} color={Colors.neutral500} />
       </TouchableOpacity>
 
       <Modal visible={showDropdown} transparent animationType="fade">
@@ -95,6 +99,17 @@ const styles = StyleSheet.create({
     borderColor: Colors.neutral200,
     borderRadius: 6,
     backgroundColor: Colors.neutral50,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    alignItems: 'center',
+  },
+  disableInputContaienr: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: Colors.neutral200,
+    borderRadius: 6,
+    backgroundColor: Colors.neutral100,
     paddingHorizontal: 12,
     paddingVertical: 7,
     alignItems: 'center',

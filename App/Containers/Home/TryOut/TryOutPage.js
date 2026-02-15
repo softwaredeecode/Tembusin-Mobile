@@ -26,7 +26,8 @@ import { Fonts } from '../../../Theme/Fonts';
 import { useDispatch, useSelector } from 'react-redux';
 import { ActionStudent } from '../../../Redux/Actions';
 
-const TryOutPage = () => {
+const TryOutPage = props => {
+  const categoryId = props?.route?.params?.categoryId;
   const navigation = useNavigation();
   const dispatch = useDispatch();
 
@@ -36,19 +37,25 @@ const TryOutPage = () => {
     category: 'SNBT',
   };
 
-  const { allTryOutData, tryOutSpinner } = useSelector(state => state.tryout);
+  const { allTryOutData, comingSoonTryoutData, tryOutSpinner } = useSelector(
+    state => state.tryout,
+  );
 
   useFocusEffect(
     useCallback(() => {
       const initializeData = async () => {
         const token = await AsyncStorage.getItem('auth_token');
 
-        dispatch(
-          ActionStudent.GetAllTryOutData(token, {
-            page: 1,
-            limit: 3,
-          }),
-        );
+        Promise.all([
+          dispatch(
+            ActionStudent.GetAllTryOutData(token, {
+              page: 1,
+              limit: 3,
+              category_id: categoryId,
+            }),
+          ),
+          dispatch(ActionStudent.GetComingSoonTryout(token)),
+        ]);
       };
       initializeData();
 
@@ -68,44 +75,74 @@ const TryOutPage = () => {
         <View style={styles.lastOpenContainer}>
           <Text style={styles.titleText}>Akan Datang</Text>
           <View style={styles.lastOpenedProductContainer}>
-            <View style={[styles.row, { gap: 12, alignItems: 'flex-start' }]}>
-              <View style={styles.iconContainer}>
-                <MaterialCommunityIcons
-                  name={'clipboard-check-outline'}
-                  size={24}
-                  color={Colors.product900}
-                />
-              </View>
-              <View style={{ flex: 1 }}>
-                <View style={[styles.row, styles.titleContainer]}>
-                  <Text style={styles.lastOpenTitleText}>
-                    {lastOpenData.title}
-                  </Text>
-                  <View style={styles.tryoutCategoryContainer}>
-                    <Text style={styles.tryoutCategoryText}>
-                      {lastOpenData.category}
+            {comingSoonTryoutData?.data?.data ? (
+              <View style={[styles.row, { gap: 12, alignItems: 'flex-start' }]}>
+                <View style={styles.iconContainer}>
+                  <MaterialCommunityIcons
+                    name={'file-document-edit-outline'}
+                    size={24}
+                    color={Colors.product900}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <View style={[styles.row, styles.titleContainer]}>
+                    <Text style={styles.lastOpenTitleText}>
+                      {comingSoonTryoutData.data.data.tryout_name}
                     </Text>
+                    <View style={styles.tryoutCategoryContainer}>
+                      <Text style={styles.tryoutCategoryText}>
+                        {comingSoonTryoutData.data.data.category.category_name}
+                      </Text>
+                    </View>
                   </View>
-                </View>
 
-                <View style={[styles.row, { gap: 6, alignItems: 'center' }]}>
-                  <View style={styles.dateIconContainer}>
-                    <MaterialCommunityIcons
-                      name={'calendar-blank'}
-                      size={12}
-                      color={Colors.neutral500}
-                    />
+                  <View style={[styles.row, { gap: 6, alignItems: 'center' }]}>
+                    <View style={styles.dateIconContainer}>
+                      <MaterialCommunityIcons
+                        name={'calendar-blank'}
+                        size={12}
+                        color={Colors.neutral500}
+                      />
+                    </View>
+                    {comingSoonTryoutData.data.data.no_time_limit_flag === 0 ? (
+                      <Text style={styles.lastOpenDescText}>
+                        {formatDateMaterial(
+                          comingSoonTryoutData.data.data.start_time,
+                        )}{' '}
+                        {comingSoonTryoutData.data.data.end_time
+                          ? `- ${formatDateMaterial(
+                              comingSoonTryoutData.data.data.end_time,
+                            )}`
+                          : ''}
+                      </Text>
+                    ) : (
+                      <Text style={styles.lastOpenDescText}>
+                        Akses kapan saja
+                      </Text>
+                    )}
                   </View>
-                  <Text style={styles.lastOpenDescText}>
-                    {lastOpenData.desc}
-                  </Text>
                 </View>
               </View>
-            </View>
+            ) : (
+              <Text
+                style={{
+                  textAlign: 'center',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  paddingVertical: 12,
+                  fontFamily: Fonts.Medium,
+                  fontSize: 14,
+                  lineHeight: 18,
+                  color: Colors.neutral500,
+                }}
+              >
+                Belum Ada
+              </Text>
+            )}
           </View>
         </View>
         <TouchableOpacity
-          onPress={() => navigation.navigate('MyTryOutPage')}
+          onPress={() => navigation.navigate('MyTryOutPage', {categoryId: categoryId})}
           style={[styles.row, styles.myProductContainer]}
         >
           <MaterialCommunityIcons
@@ -123,13 +160,14 @@ const TryOutPage = () => {
             color={Colors.neutral400}
           />
         </TouchableOpacity>
+
         <View style={[styles.row, styles.exploreAllProductTitleContainer]}>
           <Text style={styles.exploreAllProductTitleText}>
             Jelajahi semua try out!
           </Text>
-          {allTryOutData.data.total_items && (
+          {allTryOutData.data.total_items > 3 && (
             <TouchableOpacity
-              onPress={() => navigation.navigate('AllTryOutPage')}
+              onPress={() => navigation.navigate('AllTryOutPage', {categoryId: categoryId})}
               style={[styles.row, styles.exploreAllProductTitleButtonContainer]}
             >
               <Text style={styles.exploreAllProductTitleButtonText}>
@@ -163,14 +201,14 @@ const TryOutPage = () => {
             ) : null
           }
         />
-        <TouchableOpacity
-          onPress={() => navigation.navigate('AllTryOutPage')}
-          style={styles.openAllMaterialContainer}
-        >
-          <Text style={styles.openAllMaterialText}>
-            Lihat semua try out
-          </Text>
-        </TouchableOpacity>
+        {allTryOutData.data.total_items > 3 && (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('AllTryOutPage', {categoryId: categoryId})}
+            style={styles.openAllMaterialContainer}
+          >
+            <Text style={styles.openAllMaterialText}>Lihat semua try out</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </View>
   );

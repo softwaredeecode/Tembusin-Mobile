@@ -10,6 +10,7 @@ import rootReducer from './App/Redux/Reducers/index.js';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Colors } from './App/Theme/Colors';
+import Toast from 'react-native-toast-message';
 
 const store = configureStore({
   reducer: rootReducer,
@@ -22,6 +23,7 @@ const App = () => {
         <Provider store={store}>
           <SafeAreaProvider>
             <AppNavigator />
+            <Toast />
           </SafeAreaProvider>
         </Provider>
       </BottomSheetModalProvider>

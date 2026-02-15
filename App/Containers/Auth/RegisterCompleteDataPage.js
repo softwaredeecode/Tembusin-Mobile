@@ -16,6 +16,7 @@ import Header from '../../Components/Header';
 import Stepper from '../../Components/Stepper';
 import TextInputComponent from '../../Components/TextInputComponent';
 import InputDatePicker from '../../Components/InputDatePicker';
+import { formatDateToYYYYMMDD } from '../../Utils/Helper';
 
 //theme
 import { Colors } from '../../Theme/Colors';
@@ -29,12 +30,22 @@ const RegisterCompleteDataPage = props => {
   const [phoneNumber, setPhoneNumber] = useState('');
 
   const handleContinueOnPress = () => {
+    const formattedBirthDate = formatDateToYYYYMMDD(birthDate);
+    const data = {
+      fullName: registrationData.userDetail.full_name,
+      userId: registrationData.userDetail.id,
+      dateOfBirth: formattedBirthDate,
+      gender: gender === 'male' ? 'l' : 'p',
+      phone: phoneNumber,
+    };
     if (registrationData.selectedAccountType == 'cpns') {
-      navigation.navigate('RegisterCPNSPage');
+      navigation.navigate('RegisterCPNSPage', { data });
     } else if (registrationData.selectedAccountType == 'ptn') {
-      navigation.navigate('RegisterPTNPage');
+      navigation.navigate('RegisterPTNPage', { data });
     }
   };
+
+  console.log(formatDateToYYYYMMDD(birthDate), 'birthDate')
 
   return (
     <View style={styles.container}>
@@ -56,7 +67,7 @@ const RegisterCompleteDataPage = props => {
           <TextInputComponent
             title={'Nama lengkap'}
             disabled={true}
-            value={registrationData.fullname}
+            value={registrationData.userDetail.full_name}
           />
           <View style={styles.divider}>
             <InputDatePicker
@@ -151,7 +162,7 @@ const RegisterCompleteDataPage = props => {
             <TextInputComponent
               title={'Email'}
               disabled={true}
-              value={registrationData.email}
+              value={registrationData.userDetail.email}
               leftIcon="mail-outline"
             />
           </View>

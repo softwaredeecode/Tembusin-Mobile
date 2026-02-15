@@ -10,7 +10,7 @@ export const GetMaterialCollectionData = (token, params = {}) => {
 
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 15000);
+    }, 30000);
 
     try {
       const queryString = new URLSearchParams(params).toString();
@@ -75,7 +75,7 @@ export const GetMyMaterialCollectionData = (token, params = {}) => {
 
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 15000);
+    }, 30000);
 
     try {
       const queryString = new URLSearchParams(params).toString();
@@ -142,7 +142,7 @@ export const GetLastReadMaterialCollectionDetailData = (token, params = {}) => {
 
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 15000);
+    }, 30000);
 
     try {
       const queryString = new URLSearchParams(params).toString();
@@ -210,7 +210,7 @@ export const GetMaterialCollectionDetailData = (
 
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 15000);
+    }, 30000);
 
     try {
       const baseUrl = `${BASE_URL}${MATERIAL.materialCollectionDetail}/${materialCollectionId}`;
@@ -262,14 +262,13 @@ export const GetMaterialCollectionDetailData = (
 export const PurchaseMaterialCollection = async (
   token,
   materialCollectionId,
-  price,
 ) => {
   const controller = new AbortController();
   const { signal } = controller;
 
   const timeoutId = setTimeout(() => {
     controller.abort();
-  }, 15000);
+  }, 30000);
 
   try {
     const baseUrl = `${BASE_URL}${MATERIAL.buyMaterial}/${materialCollectionId}/purchase`;
@@ -286,7 +285,7 @@ export const PurchaseMaterialCollection = async (
       },
       body: JSON.stringify({
         material_collection_id: materialCollectionId,
-        price: price,
+        payment_method: 'token'
       }),
     });
 
@@ -323,7 +322,7 @@ export const GetMaterialDetailData = (token, materialId) => {
 
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 15000);
+    }, 30000);
 
     try {
       const baseUrl = `${BASE_URL}${MATERIAL.materialDetail}/${materialId}`;

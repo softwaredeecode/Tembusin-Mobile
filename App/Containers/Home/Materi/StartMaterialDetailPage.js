@@ -5,12 +5,17 @@ import {
   StatusBar,
   ScrollView,
   TouchableOpacity,
+  Image,
+  Modal,
+  Linking,
+  Platform,
 } from 'react-native';
 import React, { useEffect, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
+import { WebView } from 'react-native-webview';
 
 // components
 import MainHeader from '../../../Components/MainHeader';
@@ -39,6 +44,40 @@ const StartMaterialDetailPage = props => {
   const currentMaterial = useMemo(() => {
     return materialList[currentIndex];
   }, [currentIndex, materialList]);
+  const [showVideo, setShowVideo] = React.useState(false);
+  const videoRef = React.useRef(null);
+
+  const getYoutubeId = url => {
+    console.log(url, 'YOUTUBE URL');
+    const regExp =
+      /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    return match && match[2].length === 11 ? match[2] : null;
+  };
+
+  console.log(materialDetailData, 'materialDetailData');
+
+  const getYoutubeThumbnail = url => {
+    console.log(url, 'INI URL');
+    const regExp =
+      /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    const videoId = match && match[2].length === 11 ? match[2] : null;
+
+    if (!videoId) return null;
+
+    console.log(videoId, 'VIDEOID');
+
+    return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+  };
+
+  const playVideo = url => {
+    if (Platform.OS === 'ios') {
+      Linking.openURL(url);
+    } else {
+      setShowVideo(true);
+    }
+  };
 
   useEffect(() => {
     const fetchMaterial = async () => {
@@ -98,12 +137,55 @@ const StartMaterialDetailPage = props => {
               {materialDetailData.data.content}
             </Text>
           </View>
-          <View style={styles.contentChildContainer}>
-            <Text style={styles.materialNameText}>Pembahasan</Text>
-            <Text style={styles.materialContentText}>
-              {materialDetailData.data.explanation_url}
-            </Text>
-          </View>
+          {materialDetailData.data.explanation_url && (
+            <View style={styles.contentChildContainer}>
+              <Text style={styles.materialNameText}>Pembahasan</Text>
+
+              {/* Thumbnail */}
+              <TouchableOpacity
+                style={styles.videoThumbnailContainer}
+                onPress={() => playVideo(materialDetailData.data.explanation_url)}
+              >
+                <Image
+                  source={{
+                    uri: getYoutubeThumbnail(
+                      materialDetailData.data.explanation_url,
+                    ),
+                  }}
+                  style={styles.videoThumbnail}
+                />
+
+                <View style={styles.playIcon}>
+                  <Ionicons name="play-circle" size={56} color="#fff" />
+                </View>
+              </TouchableOpacity>
+
+              {/* Fullscreen Video */}
+              <Modal visible={showVideo} animationType="slide">
+                <View style={styles.fullscreenVideoContainer}>
+                  <TouchableOpacity
+                    style={styles.closeButton}
+                    onPress={() => setShowVideo(false)}
+                  >
+                    <Ionicons name="close" size={32} color="#fff" />
+                  </TouchableOpacity>
+
+                  <WebView
+                    originWhitelist={['*']}
+                    source={{
+                      uri: 'https://www.youtube-nocookie.com/embed/ZZ5LpwO-An4?playsinline=1&autoplay=0&controls=1&rel=0',
+                    }}
+                    allowsFullscreenVideo
+                    allowsInlineMediaPlayback
+                    mediaPlaybackRequiresUserAction={false}
+                    javaScriptEnabled
+                    domStorageEnabled
+                    style={{ width: '100%', height: '100%' }}
+                  />
+                </View>
+              </Modal>
+            </View>
+          )}
         </ScrollView>
       )}
       <View style={styles.bottomComponent}>
@@ -251,5 +333,35 @@ const styles = StyleSheet.create({
     color: Colors.warning500,
     textAlign: 'center',
     marginTop: 2,
+  },
+  videoThumbnailContainer: {
+    width: '100%',
+    height: 200,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: '#000',
+  },
+
+  videoThumbnail: {
+    width: '100%',
+    height: '100%',
+  },
+
+  playIcon: {
+    position: 'absolute',
+    top: '40%',
+    left: '42%',
+  },
+
+  fullscreenVideoContainer: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+
+  closeButton: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    zIndex: 10,
   },
 });

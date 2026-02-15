@@ -13,22 +13,68 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
+import { useNavigation } from '@react-navigation/native';
 
 //theme
 import { Colors } from '../Theme/Colors';
 import { Fonts } from '../Theme/Fonts';
+import { formatDateMaterial } from '../Utils/Helper';
 
 const TryOutCardComponents = ({ item }) => {
   const { width } = useWindowDimensions();
-  const buttonText = item.is_purchased
-    ? item.attempts_used > 0 && item.attempts_used < item.max_attempts
-      ? 'Mulai ulang'
-      : item.attempts_used === item.max_attempts
+  const navigation = useNavigation();
+  const now = new Date();
+  const endTime = new Date(item.end_time);
+  const buttonText = item.purchase_date
+    ? item.no_time_limit_flag === 0 && endTime < now
       ? 'Review'
+      : item.used_attempts > 0 && item.used_attempts < item.max_attempts
+      ? 'Mulai Ulang'
+      : item.used_attempts >= item.max_attempts
+      ? 'Lihat Detail'
       : 'Mulai'
-    : item.access_type.id == 4
+    : item?.access_type?.id == 4
     ? 'Ambil'
     : 'Beli';
+
+  const getScoreMeta = score => {
+    if (score >= 75) {
+      return {
+        label: 'Hebat',
+        color: Colors.success500,
+      };
+    }
+
+    if (score > 45) {
+      return {
+        label: 'Lumayan',
+        color: Colors.warning500,
+      };
+    }
+
+    return {
+      label: 'Kurang',
+      color: Colors.danger500,
+    };
+  };
+  const scoreMeta = getScoreMeta(item.best_score);
+
+  const handleOnPress = item => {
+    if (buttonText === 'Beli' || buttonText === 'Ambil') {
+      navigation.navigate('DetailPurchaseTryOut', {
+        tryoutId: item.id,
+      });
+    } else if (
+      buttonText === 'Mulai' ||
+      buttonText === 'Mulai Ulang' ||
+      buttonText === 'Lihat Detail' ||
+      buttonText === 'Review'
+    ) {
+      navigation.navigate('StartTryOut', {
+        tryoutId: item.tryout_id ?? item.id,
+      });
+    }
+  };
 
   return (
     <View style={styles.materialCardContainer}>
@@ -39,23 +85,6 @@ const TryOutCardComponents = ({ item }) => {
           resizeMode="cover"
         />
       )}
-      {/* <View style={styles.badgeContainer}>
-        {item.categoryCount > 0 && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{item.categoryCount} Kategori</Text>
-          </View>
-        )}
-        {item.question > 0 && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{item.question} Soal</Text>
-          </View>
-        )}
-        {item.time > 0 && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{item.time} Menit</Text>
-          </View>
-        )}
-      </View> */}
       <View style={styles.materialInfoContainer}>
         <View style={styles.materialTitleContainer}>
           <Text style={styles.materialTitleText}>{item.tryout_name}</Text>
@@ -63,6 +92,17 @@ const TryOutCardComponents = ({ item }) => {
             <Text style={styles.materialCategoryText}>
               {item.category.category_name}
             </Text>
+          </View>
+        </View>
+        <View style={styles.badgeContainer}>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{item?.statistics?.total_categories} Kategori</Text>
+          </View>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{item.total_questions} Soal</Text>
+          </View>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{item.duration_minutes} Menit</Text>
           </View>
         </View>
       </View>
@@ -112,7 +152,7 @@ const TryOutCardComponents = ({ item }) => {
           </View>
         )}
         {(item?.access_type?.id == 1 || item?.access_type?.id == 3) &&
-          !item?.is_purchased && (
+          !item?.purchase_date && (
             <View style={styles.seperateBuyContainer}>
               <Ionicons
                 name={'checkmark'}
@@ -122,7 +162,22 @@ const TryOutCardComponents = ({ item }) => {
               <Text style={styles.seperateBuyText}>Dapat dibeli terpisah</Text>
             </View>
           )}
-        {item?.access_type?.id == 4 && !item?.is_purchased && (
+        {item.purchase_date &&
+          (endTime > now || item.no_time_limit_flag === 1) && (
+            <View style={styles.materialDescContainer}>
+              <View style={styles.dateIconContainer}>
+                <MaterialCommunityIcons
+                  name={'file-document-edit-outline'}
+                  size={10}
+                  color={Colors.neutral500}
+                />
+              </View>
+              <Text style={styles.materialDateText}>
+                {`Kesempatan: ${item.used_attempts}/${item.max_attempts}`}
+              </Text>
+            </View>
+          )}
+        {item?.access_type?.id == 4 && !item?.purchase_date && (
           <View style={styles.seperateBuyContainer}>
             <Ionicons
               name={'time-outline'}
@@ -132,6 +187,18 @@ const TryOutCardComponents = ({ item }) => {
             <Text style={styles.seperateBuyText}>Gratis untuk saat ini</Text>
           </View>
         )}
+        {item.purchase_date &&
+          endTime < now &&
+          item.no_time_limit_flag === 0 && (
+            <View style={styles.expiredContainer}>
+              <Ionicons
+                name={'time-outline'}
+                size={14}
+                color={Colors.neutral500}
+              />
+              <Text style={styles.expiredText}>Lewat batas waktu akses</Text>
+            </View>
+          )}
         {/* {item.closeDeadline && (
           <View style={styles.deadlineBuyContainer}>
             <Ionicons
@@ -144,18 +211,23 @@ const TryOutCardComponents = ({ item }) => {
         )} */}
       </View>
       <View style={styles.materialBuyContainer}>
-        {item.is_purchased ? (
-          item.attempts_used === 0 ? (
+        {item.purchase_date ? (
+          item.used_attempts === 0 ? (
             <View style={styles.scoreContainer}>
               <Entypo name={'dot-single'} size={22} color={Colors.neutral400} />
               <Text style={styles.notesText}>Belum ada!</Text>
             </View>
           ) : (
             <View style={styles.scoreContainer}>
-              <Entypo name={'dot-single'} size={22} color={Colors.success500} />
-              <Text style={styles.scoreText}>{item.score}</Text>
+              <Entypo name="dot-single" size={22} color={scoreMeta.color} />
+
+              <Text style={[styles.scoreText, { color: scoreMeta.color }]}>
+                {item.best_score}
+              </Text>
+
               <Text style={styles.dividerText}> | </Text>
-              <Text style={styles.notesText}>{item.notes}</Text>
+
+              <Text style={[styles.notesText]}>{scoreMeta.label}</Text>
             </View>
           )
         ) : (
@@ -163,16 +235,19 @@ const TryOutCardComponents = ({ item }) => {
         )}
 
         {(item?.access_type?.id === 1 || item?.access_type?.id === 3) &&
-          !item.is_purchased && (
+          !item.purchase_date && (
             <View style={[styles.row, { gap: 6 }]}>
               <FontAwesome name={'money'} size={16} color={Colors.warning500} />
-              <Text style={styles.priceToken}>{item.price_token}</Text>
+              <Text style={styles.priceToken}>{item.price_token || item.price}</Text>
             </View>
           )}
-        {item?.access_type?.id === 4 && !item.is_purchased && (
+        {item?.access_type?.id === 4 && !item.purchase_date && (
           <Text style={styles.freeText}>Free</Text>
         )}
         <TouchableOpacity
+          onPress={() => {
+            handleOnPress(item);
+          }}
           style={styles.buyButtonContainer}
         >
           <Text style={styles.buyButtonText}>{buttonText}</Text>
@@ -198,9 +273,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 8,
   },
   badgeContainer: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 6,
@@ -282,6 +354,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.neutral200,
     paddingHorizontal: 12,
+    marginTop: 10,
   },
   materialBuyContainer: {
     paddingVertical: 12,
@@ -342,11 +415,30 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     gap: 4,
   },
+  expiredContainer: {
+    marginTop: 8,
+    paddingVertical: 2,
+    paddingHorizontal: 4,
+    borderWidth: 1,
+    borderColor: Colors.neutral200,
+    backgroundColor: Colors.neutral50,
+    borderRadius: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 4,
+  },
   seperateBuyText: {
     fontFamily: Fonts.Regular,
     fontSize: 12,
     lineHeight: 18,
     color: Colors.success500,
+  },
+  expiredText: {
+    fontFamily: Fonts.Regular,
+    fontSize: 12,
+    lineHeight: 18,
+    color: Colors.neutral500,
   },
   deadlineBuyContainer: {
     marginTop: 8,

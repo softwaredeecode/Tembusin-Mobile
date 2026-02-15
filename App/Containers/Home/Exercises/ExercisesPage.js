@@ -27,15 +27,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ActionStudent } from '../../../Redux/Actions';
 import { formatDateMaterial } from '../../../Utils/Helper';
 
-const ExercisesPage = () => {
+const ExercisesPage = props => {
+  const categoryId = props?.route?.params?.categoryId;
   const navigation = useNavigation();
   const dispatch = useDispatch();
-
-  const lastOpenData = {
-    title: 'Latihan soal SNBT 3',
-    desc: 'Akses 3 Nov - 5 Nov',
-    category: 'SNBT',
-  };
 
   const { allExercisesSetData, comingSoonExerciseData, exercisesSpinner } =
     useSelector(state => state.exercises);
@@ -50,6 +45,7 @@ const ExercisesPage = () => {
             ActionStudent.GetAllExercisesSetData(token, {
               page: 1,
               limit: 3,
+              category_id: categoryId,
             }),
           ),
           dispatch(ActionStudent.GetComingSoonExercise(token)),
@@ -70,10 +66,10 @@ const ExercisesPage = () => {
       />
       <MainHeader title={'Latihan Soal'} />
       <ScrollView style={styles.bodyContainer}>
-        {comingSoonExerciseData.data.data && (
-          <View style={styles.lastOpenContainer}>
-            <Text style={styles.titleText}>Akan Datang</Text>
-            <View style={styles.lastOpenedProductContainer}>
+        <View style={styles.lastOpenContainer}>
+          <Text style={styles.titleText}>Akan Datang</Text>
+          <View style={styles.lastOpenedProductContainer}>
+            {comingSoonExerciseData?.data?.data ? (
               <View style={[styles.row, { gap: 12, alignItems: 'flex-start' }]}>
                 <View style={styles.iconContainer}>
                   <MaterialCommunityIcons
@@ -105,7 +101,8 @@ const ExercisesPage = () => {
                         color={Colors.neutral500}
                       />
                     </View>
-                    {comingSoonExerciseData.data.data.no_time_limit_flag === 0 ? (
+                    {comingSoonExerciseData.data.data.no_time_limit_flag ===
+                    0 ? (
                       <Text style={styles.lastOpenDescText}>
                         {formatDateMaterial(
                           comingSoonExerciseData.data.data.start_time,
@@ -124,12 +121,27 @@ const ExercisesPage = () => {
                   </View>
                 </View>
               </View>
-            </View>
+            ) : (
+              <Text
+                style={{
+                  textAlign: 'center',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  paddingVertical: 12,
+                  fontFamily: Fonts.Medium,
+                  fontSize: 14,
+                  lineHeight: 18,
+                  color: Colors.neutral500,
+                }}
+              >
+                Belum Ada
+              </Text>
+            )}
           </View>
-        )}
+        </View>
 
         <TouchableOpacity
-          onPress={() => navigation.navigate('MyExercisesPage')}
+          onPress={() => navigation.navigate('MyExercisesPage',  {categoryId: categoryId})}
           style={[styles.row, styles.myProductContainer]}
         >
           <MaterialCommunityIcons
@@ -153,7 +165,7 @@ const ExercisesPage = () => {
           </Text>
           {allExercisesSetData.data.total_items > 3 && (
             <TouchableOpacity
-              onPress={() => navigation.navigate('AllExercisesPage')}
+              onPress={() => navigation.navigate('AllExercisesPage', {categoryId: categoryId})}
               style={[styles.row, styles.exploreAllProductTitleButtonContainer]}
             >
               <Text style={styles.exploreAllProductTitleButtonText}>
@@ -187,14 +199,16 @@ const ExercisesPage = () => {
             ) : null
           }
         />
-        <TouchableOpacity
-          onPress={() => navigation.navigate('AllExercisesPage')}
-          style={styles.openAllMaterialContainer}
-        >
-          <Text style={styles.openAllMaterialText}>
-            Lihat semua latihan soal
-          </Text>
-        </TouchableOpacity>
+        {allExercisesSetData.data.total_items > 3 && (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('AllExercisesPage', {categoryId: categoryId})}
+            style={styles.openAllMaterialContainer}
+          >
+            <Text style={styles.openAllMaterialText}>
+              Lihat semua latihan soal
+            </Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </View>
   );

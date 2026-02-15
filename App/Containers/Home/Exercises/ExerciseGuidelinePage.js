@@ -17,7 +17,7 @@ const ExerciseGuidelinePage = ({ route }) => {
         backgroundColor={Colors.white}
         barStyle="dark-content"
       />
-      <MainHeader title="Review hasil latihan" />
+      <MainHeader title="Buku Panduan" />
       <Pdf
         source={{ uri: pdfUrl, cache: true }}
         style={styles.pdf}

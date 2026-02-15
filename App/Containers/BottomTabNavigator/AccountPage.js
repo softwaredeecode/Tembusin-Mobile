@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation, CommonActions } from '@react-navigation/native';
+import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 
 //theme
 import { Colors } from '../../Theme/Colors';
@@ -16,13 +18,21 @@ import { Fonts } from '../../Theme/Fonts';
 
 // components
 import AuthenticatedHeader from '../../Components/AuthenticatedHeader';
+import BottomModal from '../../Components/BottomModal';
 
 //helper
 import { getInitial } from '../../Utils/Helper';
+import { AuthContext } from '../../Context/AuthContext';
 
 const AccountPage = () => {
-
+  const navigation = useNavigation();
+  const { signOut } = useContext(AuthContext);
   const [userData, setUserData] = useState(null);
+  const [showConfirmationGoBack, setShowConfirmationGoBack] = useState(false);
+
+  const handleLogout = async () => {
+    await signOut();
+  };
 
   useEffect(() => {
     const getUserData = async () => {
@@ -57,14 +67,12 @@ const AccountPage = () => {
           <View style={styles.infoContainer}>
             <View style={styles.profileInitialContainer}>
               <Text style={styles.initialText}>
-                {getInitial(userData?.username)}
+                {getInitial(userData?.full_name)}
               </Text>
             </View>
             <View>
               <View style={styles.row}>
-                <Text style={styles.profileNameText}>
-                  {userData?.username}
-                </Text>
+                <Text style={styles.profileNameText}>{userData?.full_name}</Text>
                 <View style={styles.iconNameContainer}>
                   <MaterialCommunityIcons
                     name="crown-outline"
@@ -73,9 +81,7 @@ const AccountPage = () => {
                   />
                 </View>
               </View>
-              <Text style={styles.emailText}>
-                {userData?.email}
-              </Text>
+              <Text style={styles.emailText}>{userData?.email}</Text>
             </View>
           </View>
           <View style={styles.detailProfileContainer}>
@@ -142,11 +148,55 @@ const AccountPage = () => {
           />
         </View>
 
-        <TouchableOpacity style={styles.logoutContainer}>
+        <TouchableOpacity
+          onPress={() => {
+            setShowConfirmationGoBack(true);
+          }}
+          style={styles.logoutContainer}
+        >
           <Ionicons name="log-out-outline" size={20} color={Colors.danger500} />
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
       </ScrollView>
+      <BottomModal
+        visible={showConfirmationGoBack}
+        onClose={() => setShowConfirmationGoBack(false)}
+        enableScroll={false}
+        withHeader={false}
+      >
+        <View style={bottomModalStyles.container}>
+          <View style={bottomModalStyles.iconContainer}>
+            <SimpleLineIcons
+              name={'question'}
+              size={40}
+              color={Colors.danger500}
+            />
+          </View>
+          <Text style={bottomModalStyles.titleText}>Keluar dari akun ?</Text>
+          <Text style={bottomModalStyles.descText}>
+            Kamu akan keluar dari sesi dan perlu login kembali untuk
+            melanjutkan.
+          </Text>
+          <View style={bottomModalStyles.buttonContainer}>
+            <TouchableOpacity
+              onPress={() => {
+                setShowConfirmationGoBack(false);
+              }}
+              style={styles.exitButtonContainer}
+            >
+              <Text style={styles.exitButtonText}>Batal</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                handleLogout();
+              }}
+              style={styles.doneButtonContainer}
+            >
+              <Text style={styles.doneButtonText}>Ya, Keluar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </BottomModal>
     </View>
   );
 };
@@ -165,7 +215,7 @@ const styles = StyleSheet.create({
   bodyContainer: {
     marginTop: -134,
     paddingHorizontal: 16,
-    marginBottom: 75,
+    // marginBottom: 75,
   },
   infoContainer: {
     flexDirection: 'row',
@@ -313,5 +363,73 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginLeft: 6,
     color: Colors.danger500,
+  },
+  exitButtonContainer: {
+    marginTop: 12,
+    padding: 10,
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: Colors.neutral200,
+    borderRadius: 8,
+    alignItems: 'center',
+    flex: 1,
+  },
+  exitButtonText: {
+    fontFamily: Fonts.Medium,
+    fontSize: 14,
+    lineHeight: 20,
+    color: Colors.neutral900,
+  },
+  doneButtonContainer: {
+    marginTop: 12,
+    padding: 10,
+    backgroundColor: Colors.danger500,
+    borderRadius: 8,
+    alignItems: 'center',
+    flex: 1,
+  },
+  doneButtonText: {
+    fontFamily: Fonts.Medium,
+    fontSize: 14,
+    lineHeight: 20,
+    color: Colors.white,
+  },
+});
+
+const bottomModalStyles = StyleSheet.create({
+  container: {
+    paddingTop: 18,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+  },
+  iconContainer: {
+    padding: 12,
+    borderWidth: 1,
+    borderRadius: 10,
+    borderColor: Colors.danger200,
+    backgroundColor: Colors.danger50,
+  },
+  titleText: {
+    fontFamily: Fonts.Medium,
+    fontSize: 16,
+    lineHeight: 24,
+    color: Colors.neutral900,
+    marginTop: 20,
+  },
+  descText: {
+    fontFamily: Fonts.Regular,
+    fontSize: 14,
+    lineHeight: 20,
+    color: Colors.neutral500,
+    marginTop: 6,
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: Colors.neutral200,
   },
 });

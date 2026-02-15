@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Linking,
   Alert,
+  Dimensions,
 } from 'react-native';
 import RenderHtml from 'react-native-render-html';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -19,6 +20,8 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Entypo from 'react-native-vector-icons/Entypo';
+import { LineChart } from 'react-native-chart-kit';
+import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 
 // components
 import MainHeader from '../../../Components/MainHeader';
@@ -35,6 +38,8 @@ import { Fonts } from '../../../Theme/Fonts';
 import { useSelector, useDispatch } from 'react-redux';
 import { ActionStudent } from '../../../Redux/Actions';
 
+const screenWidth = Dimensions.get('screen').width;
+
 const StartExercisesPage = props => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
@@ -50,6 +55,7 @@ const StartExercisesPage = props => {
 
     return now > deadlineDate;
   };
+  const [confirmationModal, setConfirmationModal] = useState(false);
   const {
     guidebook_url = '',
     telegram_group_url = '',
@@ -130,7 +136,7 @@ const StartExercisesPage = props => {
       background: Colors.danger50,
     };
   };
-  const scoreMeta = getScoreMeta(exercisesSetDetailData?.data?.last_score);
+  const scoreMeta = getScoreMeta(exercisesSetDetailData?.data?.best_score);
 
   const openExternalLink = async url => {
     try {
@@ -150,7 +156,7 @@ const StartExercisesPage = props => {
   }
 
   const RenderAttemptList = ({ data, onPressItem }) => {
-    const submittedData = [...(data ?? [])].reverse();
+    const submittedData = data;
 
     const formatDate = isoString => {
       const date = new Date(isoString);
@@ -164,6 +170,18 @@ const StartExercisesPage = props => {
 
       return `${day} ${month} ${year}, ${hours}:${minutes}`;
     };
+    const reversedData = [...submittedData].reverse();
+    const chartData = {
+      labels: reversedData.map((_, index) => `#${index + 1}`),
+      datasets: [
+        {
+          data: reversedData.map(item =>
+            item.status === 'in_progress' ? 0 : item.total_score,
+          ),
+          strokeWidth: 2,
+        },
+      ],
+    };
 
     if (!submittedData.length) {
       return (
@@ -173,6 +191,33 @@ const StartExercisesPage = props => {
 
     return (
       <View>
+        {submittedData.length > 1 && (
+          <LineChart
+            data={chartData}
+            width={screenWidth - 32}
+            height={220}
+            yAxisSuffix=""
+            yAxisInterval={1}
+            chartConfig={{
+              backgroundColor: Colors.white,
+              backgroundGradientFrom: Colors.white,
+              backgroundGradientTo: Colors.white,
+              decimalPlaces: 0,
+              color: () => Colors.product900,
+              labelColor: () => Colors.neutral500,
+              propsForDots: {
+                r: '4',
+                strokeWidth: '2',
+                stroke: Colors.product900,
+              },
+            }}
+            bezier
+            style={{
+              marginVertical: 16,
+              borderRadius: 8,
+            }}
+          />
+        )}
         {submittedData.map((item, index) => {
           const scoreMeta = getScoreMeta(item.total_score);
 
@@ -332,7 +377,7 @@ const StartExercisesPage = props => {
                 ]}
               >
                 <Text style={[styles.scoreText, { color: scoreMeta.color }]}>
-                  {Math.round(exercisesSetDetailData.data.last_score)}
+                  {Math.round(exercisesSetDetailData.data.best_score)}
                 </Text>
               </View>
             </View>
@@ -510,12 +555,14 @@ const StartExercisesPage = props => {
               <Text style={styles.reviewMemberText}>Review Hasil</Text>
             </TouchableOpacity>
           )}
-          {/* {exercisesSetDetailData.data.attempts_used <
+          {exercisesSetDetailData.data.attempts_used <
             exercisesSetDetailData.data.max_attempts &&
             !isExpired && (
               <TouchableOpacity
                 disabled={exercisesSpinner}
-                onPress={handleCreateNewAttempt}
+                onPress={() => {
+                  setConfirmationModal(true);
+                }}
                 style={[styles.joinMemberContainer]}
                 activeOpacity={0.8}
               >
@@ -529,8 +576,8 @@ const StartExercisesPage = props => {
                   </Text>
                 )}
               </TouchableOpacity>
-            )} */}
-          <TouchableOpacity
+            )}
+          {/* <TouchableOpacity
             disabled={exercisesSpinner}
             onPress={handleCreateNewAttempt}
             style={[styles.joinMemberContainer]}
@@ -545,7 +592,7 @@ const StartExercisesPage = props => {
                   : 'Mulai'}
               </Text>
             )}
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
       {/* MODAL KONFIRMASI KELUAR */}
@@ -567,6 +614,48 @@ const StartExercisesPage = props => {
           />
         </View>
       </BottomModal>
+      <BottomModal
+        visible={confirmationModal}
+        onClose={() => setConfirmationModal(false)}
+        enableScroll={false}
+        withHeader={false}
+      >
+        <View style={confirmationModalStyles.container}>
+          <View style={confirmationModalStyles.iconContainer}>
+            <SimpleLineIcons
+              name={'question'}
+              size={40}
+              color={Colors.warning500}
+            />
+          </View>
+          <Text style={confirmationModalStyles.titleText}>
+            Mulai sesi latihan soal sekarang?
+          </Text>
+          <Text style={confirmationModalStyles.descText}>
+            Begitu sesi dimulai, jangan keluar dari latihan soal karena
+            percobaan tidak dapat diulang. Pastikan kamu siap melanjutkan.
+          </Text>
+          <View style={confirmationModalStyles.buttonContainer}>
+            <TouchableOpacity
+              onPress={() => {
+                setConfirmationModal(false);
+              }}
+              style={styles.exitButtonContainer}
+            >
+              <Text style={styles.exitButtonText}>Batal</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                setConfirmationModal(false);
+                handleCreateNewAttempt();
+              }}
+              style={styles.doneButtonContainer}
+            >
+              <Text style={styles.doneButtonText}>Ya, mulai</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </BottomModal>
     </View>
   );
 };
@@ -577,6 +666,36 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.neutral50,
+  },
+  exitButtonContainer: {
+    marginTop: 12,
+    padding: 10,
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: Colors.neutral200,
+    borderRadius: 8,
+    alignItems: 'center',
+    flex: 1,
+  },
+  exitButtonText: {
+    fontFamily: Fonts.Medium,
+    fontSize: 14,
+    lineHeight: 20,
+    color: Colors.neutral900,
+  },
+  doneButtonContainer: {
+    marginTop: 12,
+    padding: 10,
+    backgroundColor: Colors.product900,
+    borderRadius: 8,
+    alignItems: 'center',
+    flex: 1,
+  },
+  doneButtonText: {
+    fontFamily: Fonts.Medium,
+    fontSize: 14,
+    lineHeight: 20,
+    color: Colors.white,
   },
   bodyContainer: {
     borderTopWidth: 1,
@@ -893,6 +1012,8 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     justifyContent: 'center',
     alignItems: 'center',
+    minWidth: 50,
+    height: 42,
   },
   scoreText: {
     fontSize: 16,
@@ -972,5 +1093,43 @@ const bottomModalStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.neutral200,
     backgroundColor: Colors.neutral50,
+  },
+});
+
+const confirmationModalStyles = StyleSheet.create({
+  container: {
+    paddingTop: 32,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+  },
+  iconContainer: {
+    padding: 12,
+    borderWidth: 1,
+    borderRadius: 10,
+    borderColor: Colors.warning200,
+    backgroundColor: Colors.warning50,
+  },
+  titleText: {
+    fontFamily: Fonts.Medium,
+    fontSize: 16,
+    lineHeight: 24,
+    color: Colors.neutral900,
+    marginTop: 20,
+  },
+  descText: {
+    fontFamily: Fonts.Regular,
+    fontSize: 14,
+    lineHeight: 20,
+    color: Colors.neutral500,
+    marginTop: 6,
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: Colors.neutral200,
   },
 });

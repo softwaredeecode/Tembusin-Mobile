@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
   scoreContainer: {
     padding: 16,
     borderWidth: 2,
-    width: 112,
+    minWidth: 112,
     height: 112,
     borderRadius: 20,
     justifyContent: 'center',

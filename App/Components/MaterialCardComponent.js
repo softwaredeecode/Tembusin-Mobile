@@ -33,10 +33,10 @@ const MaterialCardComponent = ({ item }) => {
 
   const isExpired = isAfterDeadline(item.end_time);
 
-  const buttonText = isExpired
-    ? 'Lihat Detail'
-    : item.is_purchased
-    ? item.statistics.progress_percentage == 0
+  const buttonText = item.is_purchased
+    ? isExpired
+      ? 'Lihat Detail'
+      : item.statistics.progress_percentage == 0
       ? 'Pelajari'
       : item.statistics.progress_percentage < 100
       ? 'Lanjutkan'
@@ -50,11 +50,11 @@ const MaterialCardComponent = ({ item }) => {
   const handleOnPress = item => {
     if (!item.is_purchased) {
       navigation.navigate('PurchaseMaterialDetailPage', {
-        materialCollectionId: item.id,
+        materialCollectionId: item.material_collection_id,
       });
     } else {
       navigation.navigate('MaterialDetailPage', {
-        materialCollectionId: item.id,
+        materialCollectionId: item.material_collection_id,
       });
     }
   };
@@ -173,7 +173,7 @@ const MaterialCardComponent = ({ item }) => {
               lineCap="round"
             ></AnimatedCircularProgress>
             <Text style={styles.progressText}>
-              {item.statistics.progress_percentage}%
+              {Math.round(item.statistics.progress_percentage)}%
             </Text>
           </View>
         ) : (

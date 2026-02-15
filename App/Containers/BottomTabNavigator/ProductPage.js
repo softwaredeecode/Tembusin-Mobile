@@ -25,6 +25,8 @@ import AuthenticatedHeader from '../../Components/AuthenticatedHeader';
 import ProductPackageCardComponent from '../../Components/ProductPackageCardComponent';
 import ProductTokenCardComponent from '../../Components/ProductTokenCardComponent';
 import ListEmptyComponent from '../../Components/ListEmptyComponents';
+import HistoryCardComponent from '../../Components/HistoryCardComponent';
+import { BASE_URL } from '../../Api/GlobalUrl';
 
 // redux
 import { useDispatch, useSelector } from 'react-redux';
@@ -39,13 +41,14 @@ const ProductPage = () => {
   const navigation = useNavigation();
   const hasFetched = useRef(false);
 
-  const { productListData, productSpinner } = useSelector(
+  const { productListData, productSpinner, historyListData } = useSelector(
     state => state.product,
   );
 
   const [activeTab, setActiveTab] = useState('2');
   const [tabWidth, setTabWidth] = useState(0);
   const [page, setPage] = useState(1);
+  const [myToken, setMyToken] = useState(null);
 
   const slideAnim = useRef(new Animated.Value(0)).current;
   const translateX = slideAnim.interpolate({
@@ -56,6 +59,42 @@ const ProductPage = () => {
     inputRange: [0, 1],
     outputRange: [0, -SCREEN_WIDTH],
   });
+
+  const getMyToken = async () => {
+    const url = `${BASE_URL}/user/token-balance`;
+
+    try {
+      const token = await AsyncStorage.getItem('auth_token');
+      console.log('📡 [FETCH MY TOKEN] Request URL:', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log(
+        '📥 [FETCH MY TOKEN] HTTP Status:',
+        response.status,
+        response.statusText,
+      );
+
+      const json = await response.json();
+      console.log('📦 [FETCH MY TOKEN] Response:', json);
+
+      if (response.ok) {
+        setMyToken(json.token_balance);
+      } else {
+        throw json;
+      }
+    } catch (error) {
+      console.log('❌ [FETCH MY TOKEN] Error:', error);
+    } finally {
+    }
+  };
 
   const loadMoreData = async () => {
     if (productSpinner) return;
@@ -79,23 +118,57 @@ const ProductPage = () => {
     setPage(nextPage);
   };
 
+  const loadMoreDataHistory = async () => {
+    if (productSpinner) return;
+
+    const totalPages = historyListData?.data?.total_pages || 1;
+    if (page >= totalPages) return;
+
+    const nextPage = page + 1;
+    const token = await AsyncStorage.getItem('auth_token');
+
+    dispatch(
+      ActionStudent.GetHistoryList(token, {
+        page: nextPage,
+        limit: 10,
+      }),
+    );
+
+    setPage(nextPage);
+  };
+
   useEffect(() => {
     const fetchInitialData = async () => {
       await dispatch({ type: ActionTypes.RESET_PRODUCT_LIST_DATA });
       setPage(1);
       const token = await AsyncStorage.getItem('auth_token');
-      await Promise.all([
+      if (activeTab === '1' || activeTab === '2') {
+        await Promise.all([
+          dispatch(
+            ActionStudent.GetProductList(token, {
+              page: 1,
+              limit: 10,
+              product_category_id: activeTab,
+            }),
+          ),
+        ]);
+      } else if (activeTab === '3') {
         dispatch(
-          ActionStudent.GetProductList(token, {
+          ActionStudent.GetHistoryList(token, {
             page: 1,
             limit: 10,
-            product_category_id: activeTab,
           }),
-        ),
-      ]);
+        );
+      }
     };
     fetchInitialData();
   }, [activeTab]);
+
+  useFocusEffect(
+    useCallback(() => {
+      getMyToken();
+    }, []),
+  );
 
   useEffect(() => {
     Animated.timing(slideAnim, {
@@ -119,6 +192,11 @@ const ProductPage = () => {
     [],
   );
 
+  const renderHistoryItem = useCallback(
+    ({ item }) => <HistoryCardComponent item={item} navigation={navigation} />,
+    [],
+  );
+
   const renderEmptyComponent = () => {
     return (
       <ListEmptyComponent
@@ -132,10 +210,14 @@ const ProductPage = () => {
   };
 
   const PaketComponent = () => {
+    const filteredData =
+      productListData?.data?.data?.filter(
+        item => item?.is_purchased === false,
+      ) || [];
     return (
       <View style={styles.productContainer}>
         <FlatList
-          data={productListData?.data?.data}
+          data={filteredData}
           renderItem={renderProductPackageItem}
           keyboardDismissMode="on-drag"
           onEndReached={loadMoreData}
@@ -183,17 +265,26 @@ const ProductPage = () => {
   };
   const HistoryComponent = () => {
     return (
-      <View style={styles.comingSoonContainer}>
-        <MaterialCommunityIcons
-          name="clock-outline"
-          size={64}
-          color={Colors.neutral300}
+      <View style={styles.productContainer}>
+        <FlatList
+          data={historyListData?.data?.data}
+          renderItem={renderHistoryItem}
+          keyboardDismissMode="on-drag"
+          onEndReached={loadMoreDataHistory}
+          onEndReachedThreshold={0.3}
+          ListFooterComponent={
+            productSpinner ? (
+              <View style={{ paddingVertical: 16 }}>
+                <ActivityIndicator size="small" color={Colors.product900} />
+              </View>
+            ) : null
+          }
+          keyExtractor={item => item?.id?.toString()}
+          contentContainerStyle={{
+            paddingBottom: 20,
+          }}
+          ListEmptyComponent={!productSpinner ? renderEmptyComponent() : null}
         />
-        <Text style={styles.comingSoonTitle}>Coming Soon</Text>
-        <Text style={styles.comingSoonDesc}>
-          Fitur riwayat transaksi akan segera tersedia. Nantikan pembaruannya
-          ya!
-        </Text>
       </View>
     );
   };
@@ -213,15 +304,15 @@ const ProductPage = () => {
                     size={16}
                     color={Colors.warning500}
                   />
-                  <Text style={styles.balanceText}>50</Text>
+                  <Text style={styles.balanceText}>{myToken}</Text>
                 </View>
               </View>
-              <TouchableOpacity style={styles.addButtonContainer}>
+              {/* <TouchableOpacity style={styles.addButtonContainer}>
                 <View style={styles.row}>
                   <Ionicons name={'add'} size={14} color={Colors.neutral500} />
                   <Text style={styles.addButtonText}>Top Up</Text>
                 </View>
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </View>
             <View style={[styles.datelineContainer, styles.row]}>
               <TouchableOpacity style={styles.champButtonContainer}>

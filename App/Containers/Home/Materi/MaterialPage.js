@@ -28,9 +28,10 @@ import { ActionStudent } from '../../../Redux/Actions';
 import * as ActionTypes from '../../../Redux/Constants/Types';
 import { formatDateMaterial } from '../../../Utils/Helper';
 
-const MaterialPage = () => {
+const MaterialPage = (props) => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const categoryId = props?.route?.params?.categoryId
   const {
     materialCollectionData,
     materialLastReadCollectionDetailData,
@@ -55,6 +56,7 @@ const MaterialPage = () => {
             ActionStudent.GetMaterialCollectionData(token, {
               page: 1,
               limit: 3,
+              category_id: categoryId
             }),
           ),
           dispatch(
@@ -79,13 +81,10 @@ const MaterialPage = () => {
       />
       <MainHeader title={'Materi'} />
       <ScrollView style={styles.bodyContainer}>
-        <View style={styles.lastOpenContainer}>
-          <Text style={styles.titleText}>Terakhir Dipelajari</Text>
-          {!materialLastReadCollectionDetailData.data ? (
-            <View style={styles.lastOpenedProductContainer}>
-              <Text style={styles.noneLasOpenProductText}>Belum ada</Text>
-            </View>
-          ) : (
+        {materialLastReadCollectionDetailData?.data?.data.length > 0 && (
+          <View style={styles.lastOpenContainer}>
+            <Text style={styles.titleText}>Terakhir Dipelajari</Text>
+
             <TouchableOpacity
               onPress={() => {
                 navigation.navigate('MaterialDetailPage', {
@@ -151,10 +150,10 @@ const MaterialPage = () => {
                 </View>
               </View>
             </TouchableOpacity>
-          )}
-        </View>
+          </View>
+        )}
         <TouchableOpacity
-          onPress={() => navigation.navigate('MyMaterialPage')}
+          onPress={() => navigation.navigate('MyMaterialPage', {categoryId: categoryId})}
           style={[styles.row, styles.myProductContainer]}
         >
           <MaterialCommunityIcons
@@ -178,7 +177,7 @@ const MaterialPage = () => {
           </Text>
           {materialCollectionData?.data?.total_items > 3 && (
             <TouchableOpacity
-              onPress={() => navigation.navigate('AllMaterialPage')}
+              onPress={() => navigation.navigate('AllMaterialPage', {categoryId: categoryId})}
               style={[styles.row, styles.exploreAllProductTitleButtonContainer]}
             >
               <Text style={styles.exploreAllProductTitleButtonText}>
@@ -214,7 +213,7 @@ const MaterialPage = () => {
         />
         {materialCollectionData?.data?.total_items > 3 && (
           <TouchableOpacity
-            onPress={() => navigation.navigate('AllMaterialPage')}
+            onPress={() => navigation.navigate('AllMaterialPage',  {categoryId: categoryId})}
             style={styles.openAllMaterialContainer}
           >
             <Text style={styles.openAllMaterialText}>Lihat semua materi</Text>
@@ -271,7 +270,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     color: Colors.neutral500,
     paddingVertical: 16,
-    textAlign: 'center'
+    textAlign: 'center',
   },
   row: {
     flexDirection: 'row',

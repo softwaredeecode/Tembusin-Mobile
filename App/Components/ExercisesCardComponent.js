@@ -76,7 +76,7 @@ const ExercisesCardComponents = ({ item }) => {
       color: Colors.danger500,
     };
   };
-  const scoreMeta = getScoreMeta(item.last_score);
+  const scoreMeta = getScoreMeta(item.best_score);
 
   return (
     <View style={styles.materialCardContainer}>
@@ -156,8 +156,8 @@ const ExercisesCardComponents = ({ item }) => {
           (endTime > now || item.no_time_limit_flag === 1) && (
             <View style={styles.materialDescContainer}>
               <View style={styles.dateIconContainer}>
-                <FontAwesome
-                  name={'money'}
+                <MaterialCommunityIcons
+                  name={'file-document-edit-outline'}
                   size={10}
                   color={Colors.neutral500}
                 />
@@ -212,7 +212,7 @@ const ExercisesCardComponents = ({ item }) => {
               <Entypo name="dot-single" size={22} color={scoreMeta.color} />
 
               <Text style={[styles.scoreText, { color: scoreMeta.color }]}>
-                {item.last_score}
+                {item.best_score}
               </Text>
 
               <Text style={styles.dividerText}> | </Text>

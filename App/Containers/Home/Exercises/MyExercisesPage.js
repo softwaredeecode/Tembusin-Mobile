@@ -34,8 +34,9 @@ import { Fonts } from '../../../Theme/Fonts';
 import { useSelector, useDispatch } from 'react-redux';
 import { ActionStudent } from '../../../Redux/Actions';
 
-const MyExercisesPage = () => {
+const MyExercisesPage = (props) => {
   const navigation = useNavigation();
+  const categoryId = props?.route?.params?.categoryId;
   const dispatch = useDispatch();
   const { myExercisesSetData, exercisesSpinner } = useSelector(
     state => state.exercises,
@@ -72,6 +73,7 @@ const MyExercisesPage = () => {
       ActionStudent.GetMyExercisesSetData(token, {
         page: nextPage,
         limit: 10,
+        category_id: categoryId
       }),
     );
 
@@ -88,6 +90,7 @@ const MyExercisesPage = () => {
           ActionStudent.GetMyExercisesSetData(token, {
             page: 1,
             limit: 10,
+            category_id: categoryId
           }),
         );
       };

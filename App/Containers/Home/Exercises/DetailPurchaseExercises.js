@@ -8,6 +8,7 @@ import {
   Image,
   useWindowDimensions,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import RenderHtml from 'react-native-render-html';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -15,10 +16,12 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BASE_URL } from '../../../Api/GlobalUrl';
 
 // components
 import MainHeader from '../../../Components/MainHeader';
 import BottomModal from '../../../Components/BottomModal';
+import ErrorModal from '../../../Components/ErrorModal';
 
 //theme
 import { Colors } from '../../../Theme/Colors';
@@ -40,7 +43,81 @@ const DetailPurchaseExercises = props => {
   );
   const exercisesSetId = props?.route?.params?.exercisesSetId;
   const [showBuyWithTokenModal, setShowBuyWithTokenModal] = useState(false);
-  const myToken = 50;
+  const [loadingBuyExercise, setLoadingBuyExercise] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [myToken, setMyToken] = useState(null);
+
+  const getMyToken = async () => {
+    const url = `${BASE_URL}/user/token-balance`;
+
+    try {
+      const token = await AsyncStorage.getItem('auth_token');
+      console.log('📡 [FETCH MY TOKEN] Request URL:', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log(
+        '📥 [FETCH MY TOKEN] HTTP Status:',
+        response.status,
+        response.statusText,
+      );
+
+      const json = await response.json();
+      console.log('📦 [FETCH MY TOKEN] Response:', json);
+
+      if (response.ok) {
+        setMyToken(json.token_balance);
+      } else {
+        throw json;
+      }
+    } catch (error) {
+      console.log('❌ [FETCH MY TOKEN] Error:', error);
+    } finally {
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      getMyToken();
+    }, []),
+  );
+
+  const handlePurchaseExercise = async () => {
+    setLoadingBuyExercise(true);
+    try {
+      const token = await AsyncStorage.getItem('auth_token');
+      const response = await ActionStudent.PurchaseExercise(
+        token,
+        exercisesSetId,
+      );
+      console.log(response, 'INI RESPONSE PurchaseExercise');
+      if (response.status === 201) {
+        setShowBuyWithTokenModal(false);
+        if (response.data) {
+          navigation.replace('ThankyouPageExercises', {
+            paymentData: response.data,
+            exercisesSetDetailData: exercisesSetDetailData,
+          });
+        }
+      } else {
+        setShowErrorModal(true);
+        setErrorMessage(response.data?.message || 'Terjadi kesalahan');
+      }
+    } catch (error) {
+      setShowErrorModal(true);
+      setErrorMessage('Terjadi kesalahan sistem');
+    } finally {
+      setLoadingBuyExercise(false);
+    }
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -93,15 +170,15 @@ const DetailPurchaseExercises = props => {
               </Text>
             </View>
           </View>
-          {exercisesSetDetailData.data.start_time && (
-            <View style={styles.dateContainer}>
-              <View style={styles.dateIconContainer}>
-                <MaterialCommunityIcons
-                  name={'calendar-blank'}
-                  size={12}
-                  color={Colors.neutral500}
-                />
-              </View>
+          <View style={styles.dateContainer}>
+            <View style={styles.dateIconContainer}>
+              <MaterialCommunityIcons
+                name={'calendar-blank'}
+                size={12}
+                color={Colors.neutral500}
+              />
+            </View>
+            {exercisesSetDetailData.data.no_time_limit_flag === 0 ? (
               <Text style={styles.detailText}>
                 Akses{' '}
                 {formatDateMaterial(exercisesSetDetailData.data.start_time)}{' '}
@@ -111,8 +188,10 @@ const DetailPurchaseExercises = props => {
                     )}`
                   : ''}
               </Text>
-            </View>
-          )}
+            ) : (
+              <Text style={styles.detailText}>Akses kapan saja</Text>
+            )}
+          </View>
           {exercisesSetDetailData.data.description !== '' && (
             <View style={styles.descContainer}>
               <View style={styles.dateIconContainer}>
@@ -196,18 +275,6 @@ const DetailPurchaseExercises = props => {
               <Text style={styles.countText}>Jumlah Soal</Text>
             </View>
           )}
-
-          {/* <View style={[styles.countContainer, { width: width / 3.5 }]}>
-            <View style={styles.countIconContainer}>
-              <MaterialCommunityIcons
-                name={'alarm'}
-                size={20}
-                color={Colors.product900}
-              />
-            </View>
-            <Text style={styles.countTitleText}>{selectedItem.time} Menit</Text>
-            <Text style={styles.countText}>Durasi</Text>
-          </View> */}
         </View>
       </ScrollView>
       <View style={styles.bottomComponent}>
@@ -221,20 +288,14 @@ const DetailPurchaseExercises = props => {
               <Text style={styles.buyWithTokenText}>Beli Dengan Token</Text>
             </TouchableOpacity>
           )}
-          {exercisesSetDetailData.data.access_type.id != 3 && (
+          {exercisesSetDetailData.data.access_type.id == 4 && (
             <TouchableOpacity
               onPress={() => {
-                // navigation.navigate('StartExercisesPage', {
-                //   // selectedItem: selectedItem,
-                // });
+                handlePurchaseExercise();
               }}
               style={styles.joinMemberContainer}
             >
-              <Text style={styles.joinMemberText}>
-                {exercisesSetDetailData.data.access_type.id == 4
-                  ? 'Ambil'
-                  : 'Gabung Member'}
-              </Text>
+              <Text style={styles.joinMemberText}>Ambil</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -264,31 +325,36 @@ const DetailPurchaseExercises = props => {
             {exercisesSetDetailData.data.practice_set_name}
           </Text>
         </View>
-        {exercisesSetDetailData.data.start_time && (
-          <View style={styles.dateContainer}>
-            <View style={styles.dateIconContainer}>
-              <MaterialCommunityIcons
-                name={'calendar-blank'}
-                size={12}
-                color={Colors.neutral500}
-              />
-            </View>
+        <View style={styles.dateContainer}>
+          <View style={styles.dateIconContainer}>
+            <MaterialCommunityIcons
+              name={'calendar-blank'}
+              size={12}
+              color={Colors.neutral500}
+            />
+          </View>
+          {exercisesSetDetailData.data.no_time_limit_flag === 0 ? (
             <Text style={styles.dateText}>
-              {formatDateMaterial(exercisesSetDetailData.data.start_time)}{' '}
+              Akses {formatDateMaterial(exercisesSetDetailData.data.start_time)}{' '}
               {exercisesSetDetailData.data.end_time
                 ? `- ${formatDateMaterial(
                     exercisesSetDetailData.data.end_time,
                   )}`
                 : ''}
             </Text>
-          </View>
-        )}
+          ) : (
+            <Text style={styles.dateText}>Akses kapan saja</Text>
+          )}
+        </View>
         <View style={bottomSheetModalStyles.countContainer}>
-          {/* <View style={bottomSheetModalStyles.countChildContainer}>
+          <View style={bottomSheetModalStyles.countChildContainer}>
             <Text style={bottomSheetModalStyles.countText}>
-              Kategori {selectedItem.categoryCount}
+              {
+                exercisesSetDetailData.data.sub_question_category
+                  .sub_question_category_name
+              }
             </Text>
-          </View> */}
+          </View>
           <View style={bottomSheetModalStyles.countChildContainer}>
             <Text style={bottomSheetModalStyles.countText}>
               {exercisesSetDetailData.data.total_questions} Soal
@@ -342,17 +408,23 @@ const DetailPurchaseExercises = props => {
           {myToken >= exercisesSetDetailData.data.price_token ? (
             <TouchableOpacity
               onPress={() => {
-                setShowBuyWithTokenModal(false);
-                // navigation.navigate('StartExercisesPage', {
-                //   // selectedItem: selectedItem,
-                // });
+                handlePurchaseExercise();
               }}
               style={bottomSheetModalStyles.buyButtonContainer}
+              disabled={loadingBuyExercise}
             >
-              <Text style={bottomSheetModalStyles.buyButtonText}>Beli</Text>
+              {loadingBuyExercise ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={bottomSheetModalStyles.buyButtonText}>Beli</Text>
+              )}
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
+              onPress={() => {
+                setShowBuyWithTokenModal(false);
+                navigation.navigate('MainTabs', { screen: 'ProductPage' });
+              }}
               style={bottomSheetModalStyles.topUpButtonContainer}
             >
               <Text style={bottomSheetModalStyles.topUpButtonText}>
@@ -362,6 +434,14 @@ const DetailPurchaseExercises = props => {
           )}
         </View>
       </BottomModal>
+      <ErrorModal
+        visible={showErrorModal}
+        description={errorMessage}
+        onClose={() => {
+          setShowErrorModal(false);
+          setErrorMessage('');
+        }}
+      />
     </View>
   );
 };

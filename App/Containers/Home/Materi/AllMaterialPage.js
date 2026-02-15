@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   StatusBar,
@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 
 // components
 import MainHeader from '../../../Components/MainHeader';
@@ -35,8 +36,9 @@ import * as ActionTypes from '../../../Redux/Constants/Types';
 
 const screenHeight = Dimensions.get('window').height;
 
-const AllMaterialPage = () => {
+const AllMaterialPage = (props) => {
   const dispatch = useDispatch();
+  const categoryId = props?.route?.params?.categoryId
   const [searchMaterial, setSearchMaterial] = useState('');
   const [filterVisible, setFilterVisible] = useState(false);
   const [filter, setFilter] = useState({
@@ -61,9 +63,12 @@ const AllMaterialPage = () => {
     state => state.material,
   );
 
-  useEffect(() => {
-    loadInitialData();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadInitialData();
+      return () => {};
+    }, [dispatch]),
+  );
 
   const loadInitialData = async () => {
     const token = await AsyncStorage.getItem('auth_token');
@@ -73,6 +78,7 @@ const AllMaterialPage = () => {
       ActionStudent.GetMaterialCollectionData(token, {
         page: 1,
         limit: 10,
+        category_id: categoryId
       }),
     );
   };
@@ -92,6 +98,7 @@ const AllMaterialPage = () => {
       ActionStudent.GetMaterialCollectionData(token, {
         page: nextPage,
         limit: 10,
+        category_id: categoryId
       }),
     );
 

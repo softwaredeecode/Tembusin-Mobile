@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,12 +8,15 @@ import {
   Image,
   useWindowDimensions,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import RenderHtml from 'react-native-render-html';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BASE_URL } from '../../../Api/GlobalUrl';
 
 // components
 import MainHeader from '../../../Components/MainHeader';
@@ -23,24 +26,115 @@ import BottomModal from '../../../Components/BottomModal';
 import { Colors } from '../../../Theme/Colors';
 import { Fonts } from '../../../Theme/Fonts';
 
+// redux
+import { useSelector, useDispatch } from 'react-redux';
+import { ActionStudent } from '../../../Redux/Actions';
+
+import { formatDateMaterial } from '../../../Utils/Helper';
+
 const DetailPurchaseTryOut = props => {
   const { width } = useWindowDimensions();
   const navigation = useNavigation();
-  const params = props.route.params;
-  const selectedItem = params.selectedItem;
-  const buyDesc =
-    selectedItem?.payMethod == 'member'
-      ? 'Beli paket <b>SNBT Juara</b> dan akses sebagai member.'
-      : selectedItem?.payMethod == 'token'
-      ? 'Beli paket <b>SNBT Juara</b> dan akses sebagai member, atau beli terpisah dengan <b>15 token.</b>'
-      : '';
-  const isSeperateBuy = selectedItem.seperateBuy;
-  const isFree = selectedItem.payMethod === 'free';
-  const isTokenPayment =
-    selectedItem.payMethod === 'token' && selectedItem.tokenPrice > 0;
-  const shouldRender = isSeperateBuy || isTokenPayment;
+  const dispatch = useDispatch();
+  const { tryOutDetailData, tryOutSpinner } = useSelector(
+    state => state.tryout,
+  );
+  const tryoutId = props?.route?.params?.tryoutId;
   const [showBuyWithTokenModal, setShowBuyWithTokenModal] = useState(false);
-  const myToken = 50;
+  const [loadingBuyTryOut, setLoadingBuyTryOut] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [myToken, setMyToken] = useState(null);
+
+  const getMyToken = async () => {
+    const url = `${BASE_URL}/user/token-balance`;
+
+    try {
+      const token = await AsyncStorage.getItem('auth_token');
+      console.log('📡 [FETCH MY TOKEN] Request URL:', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log(
+        '📥 [FETCH MY TOKEN] HTTP Status:',
+        response.status,
+        response.statusText,
+      );
+
+      const json = await response.json();
+      console.log('📦 [FETCH MY TOKEN] Response:', json);
+
+      if (response.ok) {
+        setMyToken(json.token_balance);
+      } else {
+        throw json;
+      }
+    } catch (error) {
+      console.log('❌ [FETCH MY TOKEN] Error:', error);
+    } finally {
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      getMyToken();
+    }, []),
+  );
+
+  const handlePurchaseTryOut = async () => {
+    setLoadingBuyTryOut(true);
+    try {
+      const token = await AsyncStorage.getItem('auth_token');
+      const response = await ActionStudent.PurchaseTryout(token, tryoutId);
+      console.log(response, 'INI RESPONSE PurchaseTryout');
+      if (response.status === 201) {
+        setShowBuyWithTokenModal(false);
+        if (response.data) {
+          navigation.replace('ThankyouPageTryOut', {
+            paymentData: response.data,
+            tryoutSetDetailData: tryOutDetailData,
+          });
+        }
+      } else {
+        setShowErrorModal(true);
+        setErrorMessage(response.data?.message || 'Terjadi kesalahan');
+      }
+    } catch (error) {
+      setShowErrorModal(true);
+      setErrorMessage('Terjadi kesalahan sistem');
+    } finally {
+      setLoadingBuyTryOut(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      const initializeData = async () => {
+        const token = await AsyncStorage.getItem('auth_token');
+
+        dispatch(ActionStudent.GetTryOutDetailData(token, tryoutId));
+      };
+      initializeData();
+
+      return () => {};
+    }, [dispatch]),
+  );
+
+  if (!tryOutDetailData?.data) {
+    return (
+      <View style={styles.container}>
+        <StatusBar translucent backgroundColor={Colors.white} />
+        <MainHeader title="Detail Try Out" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -52,15 +146,21 @@ const DetailPurchaseTryOut = props => {
       <MainHeader title={'Detail Try Out'} />
       <ScrollView style={styles.bodyContainer}>
         <View style={styles.selectedItemContainer}>
-          <Image
-            source={require('../../../Assets/Images/dummyHome.png')}
-            style={styles.image}
-            resizeMode="cover"
-          />
+          {tryOutDetailData.data.banner_url !== '' && (
+            <Image
+              source={{ uri: tryOutDetailData.data.banner_url }}
+              style={styles.image}
+              resizeMode="cover"
+            />
+          )}
           <View style={styles.titleContainer}>
-            <Text style={styles.titleText}>{selectedItem?.materialTitle}</Text>
+            <Text style={styles.titleText}>
+              {tryOutDetailData.data.tryout_name}
+            </Text>
             <View style={styles.categoryContainer}>
-              <Text style={styles.categoryText}>{selectedItem?.category}</Text>
+              <Text style={styles.categoryText}>
+                {tryOutDetailData.data.category.category_name}
+              </Text>
             </View>
           </View>
           <View style={styles.dateContainer}>
@@ -71,9 +171,18 @@ const DetailPurchaseTryOut = props => {
                 color={Colors.neutral500}
               />
             </View>
-            <Text style={styles.dateText}>{selectedItem?.date}</Text>
+            {tryOutDetailData.data.no_time_limit_flag === 0 ? (
+              <Text style={styles.detailText}>
+                Akses {formatDateMaterial(tryOutDetailData.data.start_time)}{' '}
+                {tryOutDetailData.data.end_time
+                  ? `- ${formatDateMaterial(tryOutDetailData.data.end_time)}`
+                  : ''}
+              </Text>
+            ) : (
+              <Text style={styles.detailText}>Akses kapan saja</Text>
+            )}
           </View>
-          {selectedItem.desc !== '' && (
+          {tryOutDetailData.data.description !== '' && (
             <View style={styles.descContainer}>
               <View style={styles.dateIconContainer}>
                 <MaterialCommunityIcons
@@ -82,45 +191,33 @@ const DetailPurchaseTryOut = props => {
                   color={Colors.neutral500}
                 />
               </View>
-              <RenderHtml
-                contentWidth={width}
-                source={{ html: selectedItem.desc }}
-                tagsStyles={{
-                  b: { fontWeight: 'bold' },
-                }}
-                baseStyle={styles.dateText}
-              />
+              <Text style={styles.detailText}>
+                {tryOutDetailData.data.description}
+              </Text>
             </View>
           )}
-          {shouldRender && (
-            <View style={styles.otherContainer}>
-              {isSeperateBuy && (
-                <View style={styles.seperateBuyContainer}>
-                  <Ionicons
-                    name="checkmark"
-                    size={14}
-                    color={Colors.success500}
-                  />
-                  <Text style={styles.seperateBuyText}>
-                    Dapat dibeli terpisah
-                  </Text>
-                </View>
-              )}
-              {isTokenPayment && (
-                <View style={[styles.row, { gap: 6 }]}>
-                  <FontAwesome
-                    name="money"
-                    size={16}
-                    color={Colors.warning500}
-                  />
-                  <Text style={styles.priceToken}>
-                    {selectedItem.tokenPrice}
-                  </Text>
-                </View>
-              )}
+          {(tryOutDetailData.data.access_type.id == 1 ||
+            tryOutDetailData.data.access_type.id == 3) && (
+            <View style={styles.showTokenPriceContainer}>
+              <View style={styles.seperateBuyContainer}>
+                <Ionicons
+                  name={'checkmark'}
+                  size={14}
+                  color={Colors.success500}
+                />
+                <Text style={styles.seperateBuyText}>
+                  Dapat dibeli terpisah
+                </Text>
+              </View>
+              <View style={[styles.row, { gap: 6 }]}>
+                <FontAwesome name="money" size={16} color={Colors.warning500} />
+                <Text style={bottomSheetModalStyles.priceToken}>
+                  {tryOutDetailData.data.price_token}
+                </Text>
+              </View>
             </View>
           )}
-          {isFree && (
+          {tryOutDetailData.data.access_type.id == 4 && (
             <View style={styles.otherContainer}>
               <View style={styles.seperateBuyContainer}>
                 <Ionicons
@@ -146,7 +243,7 @@ const DetailPurchaseTryOut = props => {
               />
             </View>
             <Text style={styles.countTitleText}>
-              {selectedItem.categoryCount} Kategori
+              {tryOutDetailData?.data?.statistics?.total_categories}
             </Text>
             <Text style={styles.countText}>Kategori</Text>
           </View>
@@ -159,7 +256,7 @@ const DetailPurchaseTryOut = props => {
               />
             </View>
             <Text style={styles.countTitleText}>
-              {selectedItem.question} Soal
+              {tryOutDetailData.data.total_questions} Soal
             </Text>
             <Text style={styles.countText}>Jumlah Soal</Text>
           </View>
@@ -171,22 +268,17 @@ const DetailPurchaseTryOut = props => {
                 color={Colors.product900}
               />
             </View>
-            <Text style={styles.countTitleText}>{selectedItem.time} Menit</Text>
+            <Text style={styles.countTitleText}>
+              {tryOutDetailData.data.duration_minutes} Menit
+            </Text>
             <Text style={styles.countText}>Durasi</Text>
           </View>
         </View>
       </ScrollView>
       <View style={styles.bottomComponent}>
-        <RenderHtml
-          contentWidth={width}
-          source={{ html: buyDesc }}
-          tagsStyles={{
-            b: { fontWeight: 'bold' },
-          }}
-          baseStyle={styles.buyDescText}
-        />
         <View style={styles.buttonContainer}>
-          {isTokenPayment && (
+          {(tryOutDetailData.data.access_type.id == 1 ||
+            tryOutDetailData.data.access_type.id == 3) && (
             <TouchableOpacity
               onPress={() => setShowBuyWithTokenModal(true)}
               style={styles.buyWithTokenContainer}
@@ -194,24 +286,22 @@ const DetailPurchaseTryOut = props => {
               <Text style={styles.buyWithTokenText}>Beli Dengan Token</Text>
             </TouchableOpacity>
           )}
-          <TouchableOpacity
-            onPress={() =>
-              navigation.replace('DetailStartTryOut', {
-                selectedItem: selectedItem,
-              })
-            }
-            style={styles.joinMemberContainer}
-          >
-            <Text style={styles.joinMemberText}>
-              {selectedItem.payMethod == 'free' ? 'Ambil' : 'Gabung Member'}
-            </Text>
-          </TouchableOpacity>
+          {tryOutDetailData.data.access_type.id == 4 && (
+            <TouchableOpacity
+              onPress={() => {
+                handlePurchaseTryOut();
+              }}
+              style={styles.joinMemberContainer}
+            >
+              <Text style={styles.joinMemberText}>Ambil</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
       <BottomModal
         visible={showBuyWithTokenModal}
         onClose={() => setShowBuyWithTokenModal(false)}
-        title="Beli latihan soal"
+        title="Beli try out"
         enableScroll={false}
       >
         <View style={bottomSheetModalStyles.rowContainer}>
@@ -223,11 +313,15 @@ const DetailPurchaseTryOut = props => {
             />
           </View>
           <View style={styles.categoryContainer}>
-            <Text style={styles.categoryText}>{selectedItem?.category}</Text>
+            <Text style={styles.categoryText}>
+              {tryOutDetailData.data.category.category_name}
+            </Text>
           </View>
         </View>
         <View style={bottomSheetModalStyles.titleContainer}>
-          <Text style={styles.titleText}>{selectedItem?.materialTitle}</Text>
+          <Text style={styles.titleText}>
+            {tryOutDetailData.data.tryout_name}
+          </Text>
         </View>
         <View style={styles.dateContainer}>
           <View style={styles.dateIconContainer}>
@@ -237,22 +331,34 @@ const DetailPurchaseTryOut = props => {
               color={Colors.neutral500}
             />
           </View>
-          <Text style={styles.dateText}>{selectedItem?.date}</Text>
+          {tryOutDetailData.data.no_time_limit_flag === 0 ? (
+            <Text style={styles.dateText}>
+              Akses {formatDateMaterial(tryOutDetailData.data.start_time)}{' '}
+              {tryOutDetailData.data.end_time
+                ? `- ${formatDateMaterial(tryOutDetailData.data.end_time)}`
+                : ''}
+            </Text>
+          ) : (
+            <Text style={styles.dateText}>Akses kapan saja</Text>
+          )}
         </View>
         <View style={bottomSheetModalStyles.countContainer}>
+          {/* <View style={bottomSheetModalStyles.countChildContainer}>
+            <Text style={bottomSheetModalStyles.countText}>
+              {
+                exercisesSetDetailData.data.sub_question_category
+                  .sub_question_category_name
+              }
+            </Text>
+          </View> */}
           <View style={bottomSheetModalStyles.countChildContainer}>
             <Text style={bottomSheetModalStyles.countText}>
-              Kategori {selectedItem.categoryCount}
+              {tryOutDetailData.data.total_questions} Soal
             </Text>
           </View>
           <View style={bottomSheetModalStyles.countChildContainer}>
             <Text style={bottomSheetModalStyles.countText}>
-              {selectedItem.question} Soal
-            </Text>
-          </View>
-          <View style={bottomSheetModalStyles.countChildContainer}>
-            <Text style={bottomSheetModalStyles.countText}>
-              {selectedItem.time} Menit
+              {tryOutDetailData.data.duration_minutes} Menit
             </Text>
           </View>
         </View>
@@ -263,7 +369,9 @@ const DetailPurchaseTryOut = props => {
             </Text>
             <View style={[styles.row, { gap: 6 }]}>
               <FontAwesome name="money" size={16} color={Colors.warning500} />
-              <Text style={styles.priceToken}>{selectedItem.tokenPrice}</Text>
+              <Text style={styles.priceToken}>
+                {tryOutDetailData.data.price_token}
+              </Text>
             </View>
           </View>
           <View style={bottomSheetModalStyles.tokenTotalChildContainer}>
@@ -275,14 +383,14 @@ const DetailPurchaseTryOut = props => {
                 name="money"
                 size={13}
                 color={
-                  myToken >= selectedItem.tokenPrice
+                  myToken >= tryOutDetailData.data.price_token
                     ? Colors.neutral400
                     : Colors.danger500
                 }
               />
               <Text
                 style={
-                  myToken >= selectedItem.tokenPrice
+                  myToken >= tryOutDetailData.data.price_token
                     ? bottomSheetModalStyles.myTokenText
                     : bottomSheetModalStyles.dangerMyTokenText
                 }
@@ -293,21 +401,27 @@ const DetailPurchaseTryOut = props => {
           </View>
         </View>
         <View style={bottomSheetModalStyles.buttonContainer}>
-          {myToken >= selectedItem.tokenPrice ? (
+          {myToken >= tryOutDetailData.data.price_token ? (
             <TouchableOpacity
               onPress={() => {
-                setShowBuyWithTokenModal(false);
-                navigation.replace('DetailStartTryOut', {
-                  selectedItem: selectedItem,
-                });
+                handlePurchaseTryOut();
               }}
               style={bottomSheetModalStyles.buyButtonContainer}
+              disabled={loadingBuyTryOut}
             >
-              <Text style={bottomSheetModalStyles.buyButtonText}>Beli</Text>
+              {loadingBuyTryOut ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={bottomSheetModalStyles.buyButtonText}>Beli</Text>
+              )}
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
               style={bottomSheetModalStyles.topUpButtonContainer}
+              onPress={() => {
+                setShowBuyWithTokenModal(false);
+                navigation.navigate('MainTabs', { screen: 'ProductPage' });
+              }}
             >
               <Text style={bottomSheetModalStyles.topUpButtonText}>
                 Isi Token
@@ -337,6 +451,12 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderBottomWidth: 1,
     borderBottomColor: Colors.neutral200,
+  },
+  showTokenPriceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 16,
   },
   image: {
     width: '100%',

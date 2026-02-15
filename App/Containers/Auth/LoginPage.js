@@ -7,6 +7,7 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -17,6 +18,7 @@ import { AuthContext } from '../../Context/AuthContext';
 //redux
 import { useDispatch, useSelector } from 'react-redux';
 import { ActionStudent } from '../../Redux/Actions';
+import ErrorModal from '../../Components/ErrorModal';
 
 //theme
 import { Colors } from '../../Theme/Colors';
@@ -27,39 +29,57 @@ import TextInputComponent from '../../Components/TextInputComponent';
 
 const LoginPage = () => {
   const dispatch = useDispatch();
-  const { loginResponse, loginSpinner, errorModal } = useSelector(
-    state => state.login,
-  );
+  const { loginSpinner, errorModal } = useSelector(state => state.login);
   const { signIn } = useContext(AuthContext);
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleLogin = async () => {
     const payload = {
       email: email.toLowerCase(),
       password: password,
     };
-    await dispatch(ActionStudent.Login(payload));
-  };
+    const responseLogin = await dispatch(ActionStudent.Login(payload));
+    console.log(responseLogin, 'responseLogin');
 
-  useEffect(() => {
-    const saveToken = async () => {
-      if (loginResponse && loginResponse.status === 200) {
+    if (responseLogin.status === 200) {
+      if (
+        responseLogin.data.user.role.id === 4 ||
+        responseLogin.data.user.role.id === 5
+      ) {
         try {
           await AsyncStorage.multiSet([
-            ['auth_token', loginResponse.data.token],
-            ['user_data', JSON.stringify(loginResponse.data.user)],
+            ['auth_token', responseLogin.data.token],
+            ['user_data', JSON.stringify(responseLogin.data.user)],
           ]);
-          signIn();
+          const tokenCheck = await AsyncStorage.getItem('auth_token');
+          if (tokenCheck) {
+            signIn();
+          }
         } catch (error) {
           console.log('Failed to save token', error);
         }
+      } else {
+        setShowErrorModal(true);
+        setErrorMessage('Silahkan mengakses akun anda lewat website TembusIn');
       }
-    };
+    } else {
+      setShowErrorModal(true);
+      setErrorMessage(responseLogin.data.message);
+    }
+  };
 
-    saveToken();
-  }, [loginResponse]);
+  // useEffect(() => {
+  //   const saveToken = async () => {
+  //     if (loginResponse && loginResponse.status === 200) {
+  //     }
+  //   };
+
+  //   saveToken();
+  // }, [loginResponse]);
 
   return (
     <View style={styles.container}>
@@ -77,6 +97,7 @@ const LoginPage = () => {
             placeholder={'Contoh: john.doe@email.com'}
             setValue={setEmail}
             value={email}
+            autoCapitalize={false}
           />
           <View style={styles.divider}>
             <TextInputComponent
@@ -95,7 +116,11 @@ const LoginPage = () => {
           </View>
         </View>
         <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-          <Text style={styles.loginText}>Login</Text>
+          {loginSpinner ? (
+            <ActivityIndicator size="small" color={Colors.white} />
+          ) : (
+            <Text style={styles.loginText}>Login</Text>
+          )}
         </TouchableOpacity>
         <View style={styles.orContainer}>
           <View style={styles.line} />
@@ -133,6 +158,14 @@ const LoginPage = () => {
           Ketentuan Tembus.in termasuk Penggunaan Cookie.
         </Text>
       </View>
+      <ErrorModal
+        visible={showErrorModal}
+        description={errorMessage}
+        onClose={() => {
+          setShowErrorModal(false);
+          setErrorMessage('');
+        }}
+      />
     </View>
   );
 };

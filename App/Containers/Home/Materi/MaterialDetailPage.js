@@ -42,6 +42,8 @@ const MaterialDetailPage = props => {
     const now = new Date();
     const deadlineDate = new Date(deadline);
 
+    console.log(now, deadlineDate, 'deadline')
+
     return now > deadlineDate;
   };
 
@@ -272,15 +274,21 @@ const MaterialDetailPage = props => {
                     color={Colors.neutral500}
                   />
                 </View>
-                <Text style={styles.detailText}>
-                  Akses{' '}
-                  {formatDateMaterial(materialCollectionDetailData.data.start_time)}{' '}
-                  {materialCollectionDetailData.data.end_time
-                    ? `- ${formatDateMaterial(
-                        materialCollectionDetailData.data.end_time,
-                      )}`
-                    : ''}
-                </Text>
+                {materialCollectionDetailData.data.no_time_limit_flag ? (
+                  <Text style={styles.detailText}>Akses kapan saja</Text>
+                ) : (
+                  <Text style={styles.detailText}>
+                    Akses{' '}
+                    {formatDateMaterial(
+                      materialCollectionDetailData.data.start_time,
+                    )}{' '}
+                    {materialCollectionDetailData.data.end_time
+                      ? `- ${formatDateMaterial(
+                          materialCollectionDetailData.data.end_time,
+                        )}`
+                      : ''}
+                  </Text>
+                )}
               </View>
             )}
             <View style={[styles.row]}>
@@ -309,16 +317,17 @@ const MaterialDetailPage = props => {
                   : 'Materi tidak dapat diunduh'}
               </Text>
             </View>
-            {isAfterDeadline(materialCollectionDetailData.data.end_time) && (
-              <View style={[styles.row, styles.expiredContainer]}>
-                <MaterialCommunityIcons
-                  name={'information-outline'}
-                  size={14}
-                  color={Colors.neutral500}
-                />
-                <Text style={styles.detailText}>Lewat batas waktu akses</Text>
-              </View>
-            )}
+            {!materialCollectionDetailData.data.no_time_limit_flag &&
+              isAfterDeadline(materialCollectionDetailData.data.end_time) && (
+                <View style={[styles.row, styles.expiredContainer]}>
+                  <MaterialCommunityIcons
+                    name={'information-outline'}
+                    size={14}
+                    color={Colors.neutral500}
+                  />
+                  <Text style={styles.detailText}>Lewat batas waktu akses</Text>
+                </View>
+              )}
           </View>
         </View>
         <View style={styles.badgeContainer}>
@@ -363,7 +372,7 @@ const MaterialDetailPage = props => {
         </View>
         <CategoriesDetail />
       </ScrollView>
-      {!isAfterDeadline(materialCollectionDetailData.data.end_time) && (
+      {(materialCollectionDetailData.data.no_time_limit_flag || !isAfterDeadline(materialCollectionDetailData.data.end_time)) && (
         <View style={styles.bottomComponent}>
           {/* {materialCollectionDetailData.data.access_type.id != 4 &&
           !materialCollectionDetailData.data.is_purchased && (

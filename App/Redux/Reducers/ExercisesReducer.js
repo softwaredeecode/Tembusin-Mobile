@@ -194,7 +194,7 @@ export const ExercisesReducer = (state = initialState, action) => {
     case actionTypes.GET_COMMING_SOON_EXERCISE_SUCCESS: {
       return {
         ...state,
-        exercisesSpinner: true,
+        exercisesSpinner: false,
         comingSoonExerciseData: action.payload,
         errorModal: false,
       };

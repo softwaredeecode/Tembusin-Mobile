@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import React from 'react';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
@@ -11,7 +11,12 @@ import { rupiahFormat } from '../Utils/Helper';
 
 const ProductTokenCardComponent = ({ item, navigation }) => {
   return (
-    <View style={styles.packageProductContainer}>
+    <TouchableOpacity
+      onPress={() => {
+        navigation.navigate('ProductDetailPurchasePage', { productData: item });
+      }}
+      style={styles.packageProductContainer}
+    >
       <View style={styles.packageProductInfoContainer}>
         <View style={styles.row}>
           <Text style={styles.productPackageTitleText}>
@@ -61,7 +66,7 @@ const ProductTokenCardComponent = ({ item, navigation }) => {
           )}
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 

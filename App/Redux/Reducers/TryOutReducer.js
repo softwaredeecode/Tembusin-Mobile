@@ -12,6 +12,10 @@ const initialState = {
     total_items: 0,
   },
   tryOutDetailData: {},
+  tryoutQuestionDetail: {},
+  startNewAttemptTryoutData: {},
+  comingSoonTryoutData: {},
+  tryoutAttemptList: [],
   tryOutSpinner: false,
   errorModal: false,
 };
@@ -39,10 +43,7 @@ export const TryOutReducer = (state = initialState, action) => {
             ...action.payload.data,
             data:
               page > 1
-                ? [
-                    ...(state.allTryOutData?.data?.data || []),
-                    ...incomingList,
-                  ]
+                ? [...(state.allTryOutData?.data?.data || []), ...incomingList]
                 : incomingList,
           },
         },
@@ -76,10 +77,7 @@ export const TryOutReducer = (state = initialState, action) => {
             ...action.payload.data,
             data:
               page > 1
-                ? [
-                    ...(state.myTryOutData?.data?.data || []),
-                    ...incomingList,
-                  ]
+                ? [...(state.myTryOutData?.data?.data || []), ...incomingList]
                 : incomingList,
           },
         },
@@ -108,6 +106,94 @@ export const TryOutReducer = (state = initialState, action) => {
       };
     }
     case actionTypes.GET_TRYOUT_DETAIL_DATA_FAILED:
+      return {
+        ...state,
+        tryOutSpinner: false,
+        errorModal: true,
+      };
+
+    // ============= GET_ATTEMPT_LIST_TRYOUT ===================
+    case actionTypes.GET_ATTEMPT_LIST_TRYOUT_REQUEST:
+      return {
+        ...state,
+        tryOutSpinner: true,
+        errorModal: false,
+      };
+    case actionTypes.GET_ATTEMPT_LIST_TRYOUT_SUCCESS: {
+      return {
+        ...state,
+        tryOutSpinner: false,
+        errorModal: false,
+        tryoutAttemptList: action.payload,
+      };
+    }
+    case actionTypes.GET_ATTEMPT_LIST_TRYOUT_FAILED:
+      return {
+        ...state,
+        tryOutSpinner: false,
+        errorModal: true,
+      };
+
+    // ============= GET_TRYOUT_QUESTION_DETAIL ===================
+    case actionTypes.GET_TRYOUT_QUESTION_DETAIL_REQUEST:
+      return {
+        ...state,
+        tryOutSpinner: true,
+        errorModal: false,
+      };
+    case actionTypes.GET_TRYOUT_QUESTION_DETAIL_SUCCESS: {
+      return {
+        ...state,
+        tryOutSpinner: false,
+        tryoutQuestionDetail: action.payload,
+        errorModal: false,
+      };
+    }
+    case actionTypes.GET_TRYOUT_QUESTION_DETAIL_FAILED:
+      return {
+        ...state,
+        tryOutSpinner: false,
+        errorModal: true,
+      };
+
+    // ============= POST_START_NEW_ATTEMPT_TRYOUT ===================
+    case actionTypes.POST_START_NEW_ATTEMPT_TRYOUT_REQUEST:
+      return {
+        ...state,
+        tryOutSpinner: true,
+        errorModal: false,
+      };
+    case actionTypes.POST_START_NEW_ATTEMPT_TRYOUT_SUCCESS: {
+      return {
+        ...state,
+        tryOutSpinner: false,
+        startNewAttemptTryoutData: action.payload,
+        errorModal: false,
+      };
+    }
+    case actionTypes.POST_START_NEW_ATTEMPT_TRYOUT_FAILED:
+      return {
+        ...state,
+        tryOutSpinner: false,
+        errorModal: true,
+      };
+
+    // ============= GET_COMMING_SOON_TRYOUT ===================
+    case actionTypes.GET_COMMING_SOON_TRYOUT_REQUEST:
+      return {
+        ...state,
+        tryOutSpinner: true,
+        errorModal: false,
+      };
+    case actionTypes.GET_COMMING_SOON_TRYOUT_SUCCESS: {
+      return {
+        ...state,
+        tryOutSpinner: false,
+        comingSoonTryoutData: action.payload,
+        errorModal: false,
+      };
+    }
+    case actionTypes.GET_COMMING_SOON_TRYOUT_FAILED:
       return {
         ...state,
         tryOutSpinner: false,

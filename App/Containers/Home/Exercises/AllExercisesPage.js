@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   StatusBar,
@@ -35,7 +35,8 @@ import { ActionStudent } from '../../../Redux/Actions';
 
 const screenHeight = Dimensions.get('window').height;
 
-const AllTryOutPage = () => {
+const AllTryOutPage = props => {
+  const categoryId = props?.route?.params?.categoryId;
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const { allExercisesSetData, exercisesSpinner } = useSelector(
@@ -61,9 +62,12 @@ const AllTryOutPage = () => {
   const openFilter = () => setFilterVisible(true);
   const closeFilter = () => setFilterVisible(false);
 
-  useEffect(() => {
-    loadInitialData();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadInitialData();
+      return () => {};
+    }, [dispatch]),
+  );
 
   const loadInitialData = async () => {
     const token = await AsyncStorage.getItem('auth_token');
@@ -73,6 +77,7 @@ const AllTryOutPage = () => {
       ActionStudent.GetAllExercisesSetData(token, {
         page: 1,
         limit: 10,
+        category_id: categoryId,
       }),
     );
   };
@@ -92,6 +97,7 @@ const AllTryOutPage = () => {
       ActionStudent.GetAllExercisesSetData(token, {
         page: nextPage,
         limit: 10,
+        category_id: categoryId,
       }),
     );
 
