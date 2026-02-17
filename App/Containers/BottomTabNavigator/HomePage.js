@@ -118,7 +118,7 @@ const HomePage = () => {
 
     console.log(userData, 'USERDATA');
 
-    params.append('limit', 20);
+    params.append('limit', 5);
     params.append('offset', 0);
     if (roleId !== null) params.append('role_id', roleId);
 

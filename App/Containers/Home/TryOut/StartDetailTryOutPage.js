@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
+  Switch,
 } from 'react-native';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -36,7 +37,10 @@ const StartDetailTryOutPage = props => {
   );
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answersMap, setAnswersMap] = useState({});
+  const [raguMap, setRaguMap] = useState({});
   const [showConfirmationGoBack, setShowConfirmationGoBack] = useState(false);
+  const [reportMap, setReportMap] = useState({});
+  const [showReportModal, setShowReportModal] = useState(false);
 
   // 🔽 TAMBAHAN
   const [showQuestionPicker, setShowQuestionPicker] = useState(false);
@@ -53,6 +57,10 @@ const StartDetailTryOutPage = props => {
     if (!questions?.length) return null;
     return questions[currentIndex];
   }, [currentIndex, questions]);
+
+  const currentQuestionId = currentQuestion?.id;
+  const isRagu = raguMap[currentQuestionId] || false;
+  const reportText = reportMap[currentQuestionId] || '';
 
   useEffect(() => {
     const fetchTryoutQuestion = async () => {
@@ -72,7 +80,7 @@ const StartDetailTryOutPage = props => {
 
   useEffect(() => {
     if (remainingMs === null) return;
-    console.log(remainingMs, 'remainingMs')
+    console.log(remainingMs, 'remainingMs');
     if (remainingMs === 0) {
       handleTimesUp();
     }
@@ -168,6 +176,7 @@ const StartDetailTryOutPage = props => {
         navigation.navigate('ConfirmationSubmitTryoutPage', {
           questions,
           answersMap,
+          raguMap,
           tryOutDetailData,
           startNewAttemptData,
         });
@@ -184,120 +193,11 @@ const StartDetailTryOutPage = props => {
       navigation.navigate('ConfirmationSubmitTryoutPage', {
         questions,
         answersMap,
+        raguMap,
         tryOutDetailData,
         startNewAttemptData,
       });
     }
-  };
-
-  const RenderMultipleChoiceAnswer = ({ questionId, answers }) => {
-    const selectedAnswerId = answersMap[questionId];
-
-    return (
-      <View>
-        <Text style={styles.answerText}>Pilih jawaban yang benar</Text>
-
-        {answers.map((item, index) => {
-          const isSelected = selectedAnswerId === item.id;
-
-          return (
-            <TouchableOpacity
-              key={item.id}
-              style={[
-                styles.choiceItem,
-                isSelected && styles.choiceItemSelected,
-              ]}
-              onPress={() => {
-                setAnswersMap(prev => ({
-                  ...prev,
-                  [questionId]: item.id,
-                }));
-              }}
-              activeOpacity={0.8}
-            >
-              <View
-                style={[
-                  styles.alphabetContainer,
-                  isSelected && styles.alphabetContainerSelected,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.alphabetText,
-                    isSelected && styles.alphabetTextSelected,
-                  ]}
-                >
-                  {String.fromCharCode(65 + index)}
-                </Text>
-              </View>
-
-              <Text style={styles.choiceText}>{item.content}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    );
-  };
-
-  const RenderMultipleChoiceMultipleAnswer = ({ questionId, answers }) => {
-    const selectedAnswerIds = answersMap[questionId] || [];
-
-    const toggleAnswer = answerId => {
-      setAnswersMap(prev => {
-        const prevSelected = prev[questionId] || [];
-
-        const isSelected = prevSelected.includes(answerId);
-
-        return {
-          ...prev,
-          [questionId]: isSelected
-            ? prevSelected.filter(id => id !== answerId)
-            : [...prevSelected, answerId],
-        };
-      });
-    };
-
-    return (
-      <View>
-        <Text style={styles.answerText}>
-          Pilih jawaban yang benar (boleh lebih dari satu)
-        </Text>
-
-        {answers.map((item, index) => {
-          const isSelected = selectedAnswerIds.includes(item.id);
-
-          return (
-            <TouchableOpacity
-              key={item.id}
-              style={[
-                styles.choiceItem,
-                isSelected && styles.choiceItemSelected,
-              ]}
-              onPress={() => toggleAnswer(item.id)}
-              activeOpacity={0.8}
-            >
-              <View
-                style={[
-                  styles.alphabetContainer,
-                  isSelected && styles.alphabetContainerSelected,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.alphabetText,
-                    isSelected && styles.alphabetTextSelected,
-                  ]}
-                >
-                  {String.fromCharCode(65 + index)}
-                </Text>
-              </View>
-
-              <Text style={styles.choiceText}>{item.content}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    );
   };
 
   return (
@@ -322,23 +222,39 @@ const StartDetailTryOutPage = props => {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.contentChildContainer}>
+            <View style={styles.reportRaguContainer}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Switch
+                  value={isRagu}
+                  onValueChange={val => {
+                    setRaguMap(prev => ({
+                      ...prev,
+                      [currentQuestionId]: val,
+                    }));
+                  }}
+                  trackColor={{ false: '#ccc', true: Colors.product900 }}
+                  style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
+                />
+                <Text style={styles.raguText}>Ragu ragu</Text>
+              </View>
+              <TouchableOpacity
+                style={{ flexDirection: 'row', alignItems: 'center' }}
+                onPress={() => {
+                  setShowReportModal(true);
+                }}
+              >
+                <Ionicons
+                  name="flag-outline"
+                  color={Colors.neutral500}
+                  size={16}
+                />
+                <Text style={styles.raguText}>Report</Text>
+              </TouchableOpacity>
+            </View>
             <Text style={styles.exercisesContentText}>
               {tryoutQuestionDetail.data.content}
             </Text>
           </View>
-
-          {/* {tryoutQuestionDetail?.data?.question_type?.id === 1 && (
-            <RenderMultipleChoiceAnswer
-              questionId={currentQuestion?.id}
-              answers={tryoutQuestionDetail?.data?.answers}
-            />
-          )}
-          {tryoutQuestionDetail?.data?.question_type?.id === 2 && (
-            <RenderMultipleChoiceMultipleAnswer
-              questionId={currentQuestion?.id}
-              answers={tryoutQuestionDetail?.data?.answers}
-            />
-          )} */}
           {tryoutQuestionDetail?.data?.question_type?.id === 1 && (
             <View>
               <Text style={styles.answerText}>Pilih jawaban yang benar</Text>
@@ -525,6 +441,7 @@ const StartDetailTryOutPage = props => {
             {questions.map((item, index) => {
               const isAnswered = !!answersMap[item.id];
               const isActive = index === currentIndex;
+              const isRagu = !!raguMap[item.id];
 
               return (
                 <TouchableOpacity
@@ -542,12 +459,19 @@ const StartDetailTryOutPage = props => {
                     style={[
                       pickerStyles.iconContainer,
                       isAnswered && pickerStyles.iconContainerSelected,
+                      isRagu && pickerStyles.iconContainerRagu,
                     ]}
                   >
                     <Ionicons
                       name={isAnswered ? 'checkmark' : 'close-outline'}
                       size={14}
-                      color={isAnswered ? Colors.success500 : Colors.neutral500}
+                      color={
+                        isRagu
+                          ? Colors.warning500
+                          : isAnswered
+                          ? Colors.success500
+                          : Colors.neutral500
+                      }
                     />
                   </View>
                   <Text
@@ -619,6 +543,47 @@ const StartDetailTryOutPage = props => {
           </View>
         </View>
       </BottomModal>
+
+      {/* 🔽 MODAL REPORT*/}
+      <BottomModal
+        visible={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        enableScroll={true}
+        title={'Report'}
+        withHeader={true}
+      >
+        <View style={reportStyles.container}>
+          <View style={reportStyles.textInputContainer}>
+            <TextInput
+              value={reportText}
+              multiline
+              maxLength={150}
+              placeholder="Tulis report..."
+              style={reportStyles.essayInput}
+              onChangeText={text => {
+                setReportMap(prev => ({
+                  ...prev,
+                  [currentQuestionId]: text,
+                }));
+              }}
+              textAlignVertical="top"
+            />
+          </View>
+          <Text style={{ alignSelf: 'flex-end', marginTop: 4 }}>
+            {reportText.length}/150
+          </Text>
+        </View>
+        <View style={reportStyles.buttonContainer}>
+          <TouchableOpacity
+            onPress={() => {
+              setShowReportModal(false);
+            }}
+            style={reportStyles.doneButtonContainer}
+          >
+            <Text style={reportStyles.doneButtonText}>Selesai</Text>
+          </TouchableOpacity>
+        </View>
+      </BottomModal>
     </View>
   );
 };
@@ -629,6 +594,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.neutral50,
+  },
+  reportRaguContainer: {
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  raguText: {
+    marginLeft: 4,
+    fontFamily: Fonts.Medium,
+    fontSize: 14,
+    lineHeight: 18,
+    color: Colors.neutral500,
   },
   timerContainer: {
     flexDirection: 'row',
@@ -930,5 +908,47 @@ const pickerStyles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     flex: 1,
+  },
+  iconContainerRagu: {
+    backgroundColor: Colors.warning50,
+    borderColor: Colors.warning200,
+  },
+});
+
+const reportStyles = StyleSheet.create({
+  container: {},
+  buttonContainer: {
+    marginTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: Colors.neutral200,
+  },
+  doneButtonContainer: {
+    marginTop: 12,
+    padding: 10,
+    backgroundColor: Colors.product900,
+    borderRadius: 8,
+    alignItems: 'center',
+    flex: 1,
+  },
+  doneButtonText: {
+    fontFamily: Fonts.Medium,
+    fontSize: 14,
+    lineHeight: 20,
+    color: Colors.white,
+  },
+  textInputContainer: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.neutral200,
+    backgroundColor: Colors.neutral50,
+    height: 100,
+  },
+  essayInput: {
+    fontFamily: Fonts.Regular,
+    fontSize: 14,
+    lineHeight: 20,
+    color: Colors.neutral400,
   },
 });

@@ -84,7 +84,9 @@ const ResultReviewDetailTryOutPage = props => {
           ]}
         >
           <Text style={[styles.scoreText, { color: scoreMeta.color }]}>
-            {resultData.total_score !== undefined ? Math.round(resultData.total_score) : '--'}
+            {resultData.total_score !== undefined
+              ? Math.round(resultData.total_score)
+              : '--'}
           </Text>
         </View>
         <Text style={styles.labelText}>{scoreMeta.label}</Text>
@@ -108,7 +110,10 @@ const ResultReviewDetailTryOutPage = props => {
               <View>
                 <Text style={styles.titleText}>Akurasi</Text>
                 <Text style={styles.valueText}>
-                  {resultData.percentage_score !== undefined ? Math.round(resultData.percentage_score) : '--'}%
+                  {resultData.percentage_score !== undefined
+                    ? Math.round(resultData.percentage_score)
+                    : '--'}
+                  %
                 </Text>
               </View>
             </View>
@@ -175,6 +180,9 @@ const ResultReviewDetailTryOutPage = props => {
             </View>
           </View>
         </View>
+        <TouchableOpacity onPress={() => {}} style={styles.doneButtonContainer}>
+          <Text style={styles.doneButtonText}>Lihat Review Soal</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -285,26 +293,18 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: Colors.neutral200,
   },
-  buttonContainer: {
+  doneButtonContainer: {
+    backgroundColor: Colors.product900,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 16,
     paddingVertical: 10,
     width: '100%',
-    backgroundColor: Colors.product900,
-    alignItems: 'center',
-    borderRadius: 8,
   },
-  buttonText: {
+  doneButtonText: {
+    fontFamily: Fonts.Medium,
     fontSize: 14,
     lineHeight: 20,
-    fontFamily: Fonts.Medium,
     color: Colors.white,
-  },
-  buttonOutlineContainer: {
-    paddingVertical: 10,
-    width: '100%',
-    alignItems: 'center',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: Colors.neutral900,
-    marginTop: 12,
   },
 });

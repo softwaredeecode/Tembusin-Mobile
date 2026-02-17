@@ -35,6 +35,7 @@ const ConfirmationSubmitTryoutPage = () => {
   const {
     questions = [],
     answersMap = {},
+    raguMap = {},
     tryOutDetailData,
     startNewAttemptData,
   } = route.params || {};
@@ -114,6 +115,7 @@ const ConfirmationSubmitTryoutPage = () => {
         <View style={styles.grid}>
           {questions.map((item, index) => {
             const isAnswered = !!answersMap[item.id];
+            const isRagu = !!raguMap[item.id];
 
             return (
               <TouchableOpacity
@@ -127,12 +129,19 @@ const ConfirmationSubmitTryoutPage = () => {
                   style={[
                     styles.iconContainer,
                     isAnswered && styles.iconContainerSelected,
+                    isRagu && styles.iconContainerRagu,
                   ]}
                 >
                   <Ionicons
                     name={isAnswered ? 'checkmark' : 'close-outline'}
                     size={14}
-                    color={isAnswered ? Colors.success500 : Colors.neutral500}
+                    color={
+                      isRagu
+                        ? Colors.warning500
+                        : isAnswered
+                        ? Colors.success500
+                        : Colors.neutral500
+                    }
                   />
                 </View>
 
@@ -284,6 +293,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     flex: 1,
+  },
+  iconContainerRagu: {
+    backgroundColor: Colors.warning50,
+    borderColor: Colors.warning200,
   },
   doneButtonText: {
     fontFamily: Fonts.Medium,
