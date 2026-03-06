@@ -183,7 +183,7 @@ const ResultReviewDetailPage = props => {
             </View>
           </View>
         </View>
-        <TouchableOpacity onPress={() => {}} style={styles.doneButtonContainer}>
+        <TouchableOpacity onPress={() => {navigation.navigate('ReviewExercisePage', {resultData})}} style={styles.doneButtonContainer}>
           <Text style={styles.doneButtonText}>Lihat Review Soal</Text>
         </TouchableOpacity>
       </View>

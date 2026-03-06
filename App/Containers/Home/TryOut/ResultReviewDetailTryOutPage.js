@@ -180,7 +180,12 @@ const ResultReviewDetailTryOutPage = props => {
             </View>
           </View>
         </View>
-        <TouchableOpacity onPress={() => {}} style={styles.doneButtonContainer}>
+        <TouchableOpacity
+          onPress={() => {
+            navigation.navigate('ReviewTryOutPage', { resultData });
+          }}
+          style={styles.doneButtonContainer}
+        >
           <Text style={styles.doneButtonText}>Lihat Review Soal</Text>
         </TouchableOpacity>
       </View>

@@ -20,6 +20,7 @@ import ConfirmationSubmitExercisesPage from '../Containers/Home/Exercises/Confir
 import ExercisesResultPage from '../Containers/Home/Exercises/ExercisesResultPage';
 import ResultReviewDetailPage from '../Containers/Home/Exercises/ResultReviewDetailPage';
 import ExerciseGuidelinePage from '../Containers/Home/Exercises/ExerciseGuidelinePage';
+import ReviewExercisePage from '../Containers/Home/Exercises/ReviewExercisePage';
 import ThankyouPageExercises from '../Containers/Home/Exercises/ThankyouPageExercises';
 import TryOutPage from '../Containers/Home/TryOut/TryOutPage';
 import AllTryOutPage from '../Containers/Home/TryOut/AllTryOutPage';
@@ -32,6 +33,7 @@ import TryOutGuidelinePage from '../Containers/Home/TryOut/TryOutGuidelinePage';
 import ConfirmationSubmitTryoutPage from '../Containers/Home/TryOut/ConfirmationSubmitTryoutPage';
 import TryOutResultPage from '../Containers/Home/TryOut/TryOutResultPage';
 import ResultReviewDetailTryOutPage from '../Containers/Home/TryOut/ResultReviewDetailTryOutPage';
+import ReviewTryOutPage from '../Containers/Home/TryOut/ReviewTryOutPage';
 import ForumDetailPage from '../Containers/Forum/ForumDetailPage';
 import ForumSearchPage from '../Containers/Forum/ForumSearchPage';
 import AddCommentPage from '../Containers/Forum/AddCommentPage';
@@ -39,6 +41,10 @@ import AddPostPage from '../Containers/Forum/AddPostPage';
 import ProductDetailPurchasePage from '../Containers/Product/ProductDetailPurchasePage';
 import ProductPaymentCurrencyStatusPage from '../Containers/Product/ProductPaymentCurrencyStatusPage';
 import ProductPaymentTokenStatusPage from '../Containers/Product/ProductPaymentTokenStatusPage';
+import LeaderboardTryoutPage from '../Containers/Home/TryOut/LeaderboardTryoutPage';
+import LeaderboardExercisePage from '../Containers/Home/Exercises/LeaderboardExercisePage';
+import PrivacyPolicy from '../Containers/AccountSetting/PrivacyPolicy';
+import TermsCondition from '../Containers/AccountSetting/TermsCondition';
 
 const Stack = createStackNavigator();
 
@@ -68,6 +74,10 @@ const MainStackNavigator = () => {
       <Stack.Screen name="MyExercisesPage" component={MyExercisesPage} />
       <Stack.Screen name="AllExercisesPage" component={AllExercisesPage} />
       <Stack.Screen
+        name="LeaderboardExercisePage"
+        component={LeaderboardExercisePage}
+      />
+      <Stack.Screen
         name="DetailPurchasesExercises"
         component={DetailPurchasesExercises}
       />
@@ -92,6 +102,7 @@ const MainStackNavigator = () => {
         name="ExerciseGuidelinePage"
         component={ExerciseGuidelinePage}
       />
+      <Stack.Screen name="ReviewExercisePage" component={ReviewExercisePage} />
       <Stack.Screen
         name="ThankyouPageExercises"
         component={ThankyouPageExercises}
@@ -122,6 +133,7 @@ const MainStackNavigator = () => {
         name="ResultReviewDetailTryOutPage"
         component={ResultReviewDetailTryOutPage}
       />
+      <Stack.Screen name="ReviewTryOutPage" component={ReviewTryOutPage} />
       <Stack.Screen
         name="ForumDetailPage"
         component={ForumDetailPage}
@@ -151,6 +163,22 @@ const MainStackNavigator = () => {
       <Stack.Screen
         name="ProductPaymentTokenStatusPage"
         component={ProductPaymentTokenStatusPage}
+        options={{ animation: 'none' }}
+      />
+      <Stack.Screen
+        name="LeaderboardTryoutPage"
+        component={LeaderboardTryoutPage}
+        options={{ animation: 'none' }}
+      />
+
+      <Stack.Screen
+        name="PrivacyPolicy"
+        component={PrivacyPolicy}
+        options={{ animation: 'none' }}
+      />
+      <Stack.Screen
+        name="TermsCondition"
+        component={TermsCondition}
         options={{ animation: 'none' }}
       />
     </Stack.Navigator>

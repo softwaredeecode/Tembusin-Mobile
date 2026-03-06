@@ -48,7 +48,7 @@ const AccountPage = () => {
   }, []);
 
   const MenuItem = ({ icon, label, onPress }) => (
-    <TouchableOpacity style={styles.menuItem}>
+    <TouchableOpacity onPress={onPress} style={styles.menuItem}>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <Ionicons name={icon} size={20} color={Colors.neutral900} />
         <Text style={styles.menuLabel}>{label}</Text>
@@ -72,7 +72,9 @@ const AccountPage = () => {
             </View>
             <View>
               <View style={styles.row}>
-                <Text style={styles.profileNameText}>{userData?.full_name}</Text>
+                <Text style={styles.profileNameText}>
+                  {userData?.full_name}
+                </Text>
                 <View style={styles.iconNameContainer}>
                   <MaterialCommunityIcons
                     name="crown-outline"
@@ -93,11 +95,6 @@ const AccountPage = () => {
             <View style={styles.detailProfileChildContainer}>
               <Text>234</Text>
               <Text>Likes</Text>
-            </View>
-            <View style={styles.separator} />
-            <View style={styles.detailProfileChildContainer}>
-              <Text>12</Text>
-              <Text>Pengikut</Text>
             </View>
           </View>
           <View style={styles.badgeContainer}>
@@ -140,9 +137,18 @@ const AccountPage = () => {
 
           <MenuItem icon="key-outline" label="Ganti password" />
           <Separator />
-          <MenuItem icon="shield-checkmark-outline" label="Kebijakan privasi" />
+          <MenuItem
+            onPress={() => {
+              navigation.navigate('PrivacyPolicy');
+            }}
+            icon="shield-checkmark-outline"
+            label="Kebijakan privasi"
+          />
           <Separator />
           <MenuItem
+            onPress={() => {
+              navigation.navigate('TermsCondition');
+            }}
             icon="information-circle-outline"
             label="Syarat dan ketentuan"
           />

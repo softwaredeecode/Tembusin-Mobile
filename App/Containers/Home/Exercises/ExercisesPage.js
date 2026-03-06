@@ -162,6 +162,12 @@ const ExercisesPage = props => {
           <Text style={styles.scoreText}>{item.total_score}</Text>
           <Text style={styles.scoreLabel}>Score</Text>
         </View>
+
+        {/* Duration */}
+        <View style={[styles.scoreContainer, { marginLeft: 10 }]}>
+          <Text style={styles.scoreText}>{item.total_duration_minutes}</Text>
+          <Text style={styles.scoreLabel}>Menit</Text>
+        </View>
       </View>
     );
   };
@@ -183,6 +189,13 @@ const ExercisesPage = props => {
           <View style={[styles.menuContainer, { marginTop: 16 }]}>
             <View style={styles.menuTitleTextContainer}>
               <Text style={styles.menuTitleText}>Leaderboard</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  navigation.navigate('LeaderboardExercisePage');
+                }}
+              >
+                <Text style={styles.otherButtonText}>Selengkapnya</Text>
+              </TouchableOpacity>
             </View>
 
             <FlatList
@@ -440,6 +453,9 @@ const styles = StyleSheet.create({
     padding: 12,
     borderBottomWidth: 1,
     borderBottomColor: Colors.neutral200,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   menuListContainer: {
     padding: 12,
@@ -555,5 +571,11 @@ const styles = StyleSheet.create({
   scoreLabel: {
     fontSize: 11,
     color: '#6B7280',
+  },
+  otherButtonText: {
+    fontFamily: Fonts.Medium,
+    fontSize: 12,
+    lineHeight: 16,
+    color: Colors.product900,
   },
 });

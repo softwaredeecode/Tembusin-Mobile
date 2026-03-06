@@ -1,0 +1,52 @@
+{
+  "privacyPolicy": [
+    {
+      "title": "Informasi yang Kami Kumpulkan",
+      "desc": "Kami dapat mengumpulkan beberapa data berikut saat Anda menggunakan aplikasi:",
+      "points": [
+        "Informasi akun (nama, email, kata sandi).",
+        "Data aktivitas belajar (progress materi, hasil latihan, riwayat try out).",
+        "Informasi perangkat (jenis perangkat, sistem operasi, log penggunaan)."
+      ]
+    },
+    {
+      "title": "Cara Kami Menggunakan Informasi",
+      "desc": "Data yang kami kumpulkan digunakan untuk:",
+      "points": [
+        "Menyediakan layanan pembelajaran yang dipersonalisasi.",
+        "Meningkatkan fitur, pengalaman pengguna, dan kualitas materi.",
+        "Mengirimkan notifikasi terkait pembelajaran atau akun Anda.",
+        "Menjaga keamanan dan mencegah aktivitas yang melanggar aturan."
+      ]
+    },
+    {
+      "title": "Cara Kami Melindungi Data Anda",
+      "desc": "Kami menerapkan langkah-langkah keamanan standar industri untuk menjaga informasi Anda dari akses tidak sah, penyalahgunaan, atau kebocoran data."
+    },
+    {
+      "title": "Berbagi Informasi kepada Pihak Ketiga",
+      "desc": "Kami tidak menjual atau membagikan data pribadi Anda kepada pihak ketiga kecuali:",
+      "points": [
+        "Jika diperlukan untuk menjalankan layanan (misalnya layanan analitik).",
+        "Jika diwajibkan oleh hukum atau permintaan otoritas resmi."
+      ]
+    },
+    {
+      "title": "Hak Anda Atas Data Pribadi",
+      "desc": "Anda memiliki hak untuk:",
+      "points": [
+        "Mengakses dan memperbarui data pribadi Anda.",
+        "Meminta penghapusan akun atau data tertentu.",
+        "Menolak penerimaan notifikasi tertentu."
+      ]
+    },
+    {
+      "title": "Perubahan Kebijakan",
+      "desc": "Kebijakan privasi ini dapat diperbarui sewaktu-waktu. Kami akan memberi tahu Anda jika ada perubahan penting."
+    },
+    {
+      "title": "Kontak",
+      "desc": "Jika Anda memiliki pertanyaan mengenai kebijakan privasi, Anda dapat menghubungi kami melalui email dukungan resmi tembus.in."
+    }
+  ]
+}

@@ -29,7 +29,7 @@ export const EXERCISES = {
   myExercisesSet: '/student/my-practice-sets/paginated',
   exercisesSetDetail: '/student/practice-sets',
   comingSoonExercise: '/student/practice-sets/closest-upcoming',
-  buyExercise: '/student/practice-sets'
+  buyExercise: '/student/practice-sets',
 }
 
 export const TRYOUT = {
