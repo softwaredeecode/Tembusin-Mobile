@@ -119,11 +119,15 @@ const AccountPage = () => {
 
           <MenuItem icon="person-outline" label="Ubah profil" />
           <Separator />
-          <MenuItem icon="chatbubble-ellipses-outline" label="Postingan saya" />
+          <MenuItem
+            onPress={() => {
+              navigation.navigate('MyPost');
+            }}
+            icon="chatbubble-ellipses-outline"
+            label="Postingan saya"
+          />
           <Separator />
           <MenuItem icon="download-outline" label="Unduhan saya" />
-          <Separator />
-          <MenuItem icon="time-outline" label="Riwayat transaksi" />
           <Separator />
           <MenuItem icon="people-outline" label="Kode referral" />
           <Separator />

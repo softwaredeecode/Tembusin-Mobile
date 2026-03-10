@@ -197,6 +197,79 @@ const ReviewTryOutPage = props => {
     );
   };
 
+  const RenderMultipleChoiceMultipleAnswer = ({ question, answers }) => {
+    const status = getAnswerStatus(question);
+    return (
+      <View>
+        <Text style={styles.answerText}>Review Jawaban</Text>
+        <View style={styles.legendContainer}>
+          <View style={styles.legendItem}>
+            <View
+              style={[
+                styles.legendColor,
+                { backgroundColor: Colors.success500 },
+              ]}
+            />
+            <Text style={styles.legendText}>Jawaban benar</Text>
+          </View>
+
+          {/* <View style={styles.legendItem}>
+            <View
+              style={[
+                styles.legendColor,
+                { backgroundColor: Colors.product900 },
+              ]}
+            />
+            <Text style={styles.legendText}>Jawaban kamu</Text>
+          </View> */}
+        </View>
+        {/* {status === 'not_answered' && (
+          <Text style={styles.notAnsweredText}>
+            Kamu tidak menjawab soal ini!
+          </Text>
+        )} */}
+        {answers.map((item, index) => {
+          const isSelected = item.id === question?.student_answer_id;
+          const isCorrect = item.correct_flag === 1;
+
+          console.log(isCorrect, 'isCorrect');
+
+          return (
+            <View
+              key={item.id}
+              style={[
+                styles.choiceItem,
+                isSelected && styles.choiceItemSelected,
+                isCorrect && styles.choiceItemCorrect,
+              ]}
+              activeOpacity={0.8}
+            >
+              <View
+                style={[
+                  styles.alphabetContainer,
+                  isSelected && styles.alphabetContainerSelected,
+                  isCorrect && styles.alphabetContainerCorrect,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.alphabetText,
+                    isSelected && styles.alphabetTextSelected,
+                    isCorrect && styles.alphabetTextCorrect,
+                  ]}
+                >
+                  {String.fromCharCode(65 + index)}
+                </Text>
+              </View>
+
+              <Text style={styles.choiceText}>{item.content}</Text>
+            </View>
+          );
+        })}
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar
@@ -213,8 +286,7 @@ const ReviewTryOutPage = props => {
             </Text>
           </View>
 
-          {(tryoutQuestionDetail?.data?.question_type?.id === 1 ||
-            tryoutQuestionDetail?.data?.question_type?.id === 2) && (
+          {tryoutQuestionDetail?.data?.question_type?.id === 1 && (
             <RenderMultipleChoiceAnswer
               question={currentQuestion}
               answers={tryoutQuestionDetail?.data?.answers}
@@ -224,19 +296,19 @@ const ReviewTryOutPage = props => {
             <View>
               <Text style={styles.answerText}>Jawaban Benar</Text>
 
-              <View style={[styles.contentChildContainer, {marginTop: 5}]}>
+              <View style={[styles.contentChildContainer, { marginTop: 5 }]}>
                 <Text style={styles.exercisesContentText}>
                   {tryoutQuestionDetail?.data?.answers[0].content}
                 </Text>
               </View>
             </View>
           )}
-          {/* {tryoutQuestionDetail?.data?.question_type?.id === 2 && (
+          {tryoutQuestionDetail?.data?.question_type?.id === 2 && (
             <RenderMultipleChoiceMultipleAnswer
               questionId={currentQuestion?.id}
               answers={tryoutQuestionDetail?.data?.answers}
             />
-          )} */}
+          )}
           {/* {tryoutQuestionDetail?.data?.question_type?.id === 3 && (
             <View style={styles.essayContainer}>
               <View style={styles.textInputContainer}>

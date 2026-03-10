@@ -8,6 +8,8 @@ import {
   Dimensions,
   StyleSheet,
   TouchableWithoutFeedback,
+  KeyboardAvoidingView,
+  Platform
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
@@ -34,27 +36,37 @@ const BottomModal = ({
     >
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
-          <View style={styles.modalContainer}>
-            {/* HEADER */}
-            {withHeader && (
-              <View style={styles.header}>
-                <Text style={styles.title}>{title}</Text>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={{ width: '100%' }}
+          >
+            <View style={styles.modalContainer}>
+              {/* HEADER */}
+              {withHeader && (
+                <View style={styles.header}>
+                  <Text style={styles.title}>{title}</Text>
 
-                <TouchableOpacity onPress={onClose}>
-                  <Ionicons name="close" size={18} color={Colors.neutral900} />
-                </TouchableOpacity>
-              </View>
-            )}
+                  <TouchableOpacity onPress={onClose}>
+                    <Ionicons
+                      name="close"
+                      size={18}
+                      color={Colors.neutral900}
+                    />
+                  </TouchableOpacity>
+                </View>
+              )}
 
-            {/* BODY */}
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.scrollContent}
-              scrollEnabled={enableScroll}
-            >
-              {children}
-            </ScrollView>
-          </View>
+              {/* BODY */}
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.scrollContent}
+                scrollEnabled={enableScroll}
+                keyboardShouldPersistTaps="handled"
+              >
+                {children}
+              </ScrollView>
+            </View>
+          </KeyboardAvoidingView>
         </View>
       </TouchableWithoutFeedback>
     </Modal>

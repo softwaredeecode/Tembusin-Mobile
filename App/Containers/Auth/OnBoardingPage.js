@@ -22,21 +22,21 @@ const slides = [
     title: 'Raih prestasi, wujudkan mimpi!',
     description:
       'Bergabung dan tumbuh bersama komunitas belajar yang siap menembus setiap tantangan.',
-    image: require('../../Assets/Images/onboardingempty.png'),
+    image: require('../../Assets/Images/onboardingOne.png'),
   },
   {
     key: '2',
     title: 'Siapkan dirimu untuk masa depan',
     description:
       'Temukan cara belajar efektif dan tingkatkan peluangmu menembus universitas favorit.',
-    image: require('../../Assets/Images/onboardingempty.png'),
+    image: require('../../Assets/Images/onboardingTwo.png'),
   },
   {
     key: '3',
     title: 'Langkah pasti menuju ASN',
     description:
       'Tingkatkan kemampuanmu lewat latihan seru dan strategi jitu untuk wujudkan karier impian.',
-    image: require('../../Assets/Images/onboardingempty.png'),
+    image: require('../../Assets/Images/onboardingThree.png'),
   },
 ];
 

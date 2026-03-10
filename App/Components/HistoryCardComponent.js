@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import React from 'react';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -8,8 +8,22 @@ import { rupiahFormat } from '../Utils/Helper';
 import { Fonts } from '../Theme/Fonts';
 
 const HistoryCardComponent = ({ item, navigation }) => {
+  console.log('HISTORY ITEM: ', item);
+  const paymentData = {
+    reference_no: item.ref_number,
+    product_name: item.product.product_name,
+    price: item.amount,
+  };
   return (
-    <View style={styles.container}>
+    <TouchableOpacity
+      onPress={() => {
+        navigation.navigate('ProductPaymentCurrencyStatusPage', {
+          paymentData: paymentData,
+        });
+      }}
+      disabled={item.status === 'SUCCESS'}
+      style={styles.container}
+    >
       <View style={styles.child}>
         <View style={styles.iconContainer}>
           <MaterialCommunityIcons
@@ -27,9 +41,15 @@ const HistoryCardComponent = ({ item, navigation }) => {
       </View>
       <View style={styles.childSecond}>
         <Text style={styles.productCateText}>{formatDate(item.date)}</Text>
-        <Text style={styles.amountText}>{rupiahFormat(item.amount)}</Text>
+        <Text
+          style={
+            item.status === 'SUCCESS' ? styles.amountText : styles.pendingText
+          }
+        >
+          {rupiahFormat(item.amount)}
+        </Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
@@ -56,7 +76,7 @@ const styles = StyleSheet.create({
     padding: 12,
     flexDirection: 'row',
     gap: 12,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   childSecond: {
     padding: 12,
@@ -77,9 +97,15 @@ const styles = StyleSheet.create({
     color: Colors.neutral500,
   },
   amountText: {
-    fontFamily: Fonts.Medium,
+    fontFamily: Fonts.SemiBold,
     fontSize: 14,
     lineHeight: 18,
-    color: Colors.neutral900,
+    color: Colors.success500,
+  },
+  pendingText: {
+    fontFamily: Fonts.SemiBold,
+    fontSize: 14,
+    lineHeight: 18,
+    color: Colors.warning500,
   },
 });

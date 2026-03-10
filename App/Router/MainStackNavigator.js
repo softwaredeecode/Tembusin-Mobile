@@ -45,6 +45,7 @@ import LeaderboardTryoutPage from '../Containers/Home/TryOut/LeaderboardTryoutPa
 import LeaderboardExercisePage from '../Containers/Home/Exercises/LeaderboardExercisePage';
 import PrivacyPolicy from '../Containers/AccountSetting/PrivacyPolicy';
 import TermsCondition from '../Containers/AccountSetting/TermsCondition';
+import MyPost from '../Containers/AccountSetting/MyPost';
 
 const Stack = createStackNavigator();
 
@@ -179,6 +180,11 @@ const MainStackNavigator = () => {
       <Stack.Screen
         name="TermsCondition"
         component={TermsCondition}
+        options={{ animation: 'none' }}
+      />
+      <Stack.Screen
+        name="MyPost"
+        component={MyPost}
         options={{ animation: 'none' }}
       />
     </Stack.Navigator>

@@ -11,6 +11,7 @@ import {
   Image,
   ScrollView,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -85,6 +86,11 @@ const HomePage = () => {
 
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
   const [leaderboardList, setLeaderboardList] = useState(null);
+  const [loadingBanner, setLoadingBanner] = useState(false);
+  const [bannerList, setBannerList] = useState([]);
+  const [popupsData, setPopupsData] = useState([]);
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupIndex, setPopupIndex] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -160,9 +166,107 @@ const HomePage = () => {
     }
   };
 
+  const fetchBanner = async () => {
+    console.log(userData, 'USERDATA');
+
+    const url = `${BASE_URL}/banners`;
+
+    try {
+      setLoadingBanner(true);
+      const token = await AsyncStorage.getItem('auth_token');
+      console.log('📡 [FETCH BANNER] Request URL:', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log(
+        '📥 [FETCH BANNER] HTTP Status:',
+        response.status,
+        response.statusText,
+      );
+
+      const json = await response.json();
+      console.log('📦 [FETCH BANNER] Response:', json);
+
+      if (response.ok) {
+        const activeBannerImages = json
+          .filter(item => item.is_active === true)
+          .map(item => item.image_url);
+
+        console.log('✅ Active Banner Images:', activeBannerImages);
+
+        setBannerList(activeBannerImages);
+      } else {
+        throw json;
+      }
+    } catch (error) {
+      console.log('❌ [FETCH BANNER] Error:', error);
+      setBannerList([]);
+    } finally {
+      setLoadingBanner(false);
+    }
+  };
+
+  const fetchPopup = async () => {
+    console.log(userData, 'USERDATA');
+
+    const url = `${BASE_URL}/popups`;
+
+    try {
+      const token = await AsyncStorage.getItem('auth_token');
+      console.log('📡 [FETCH POPUPS] Request URL:', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log(
+        '📥 [FETCH POPUPS] HTTP Status:',
+        response.status,
+        response.statusText,
+      );
+
+      const json = await response.json();
+      console.log('📦 [FETCH POPUPS] Response:', json);
+
+      if (response.ok) {
+        const activePopupsImage = json
+          .filter(item => item.is_active === true)
+          .map(item => item.image_url);
+
+        console.log('✅ Active Popups Images:', activePopupsImage);
+
+        setPopupsData(activePopupsImage);
+
+        if (activePopupsImage.length > 0) {
+          setShowPopup(true);
+        }
+      } else {
+        throw json;
+      }
+    } catch (error) {
+      console.log('❌ [FETCH POPUPS] Error:', error);
+      setPopupsData([]);
+    } finally {
+    }
+  };
+
   useEffect(() => {
     if (userData) {
       fetchLeaderboard();
+      fetchBanner();
+      fetchPopup();
     }
   }, [userData]);
 
@@ -242,26 +346,27 @@ const HomePage = () => {
         <View style={styles.carouselContainer}>
           <FlatList
             ref={flatListRef}
-            data={slides}
+            data={bannerList}
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
-            keyExtractor={item => item.key}
+            keyExtractor={(item, index) => index.toString()}
             onViewableItemsChanged={onViewRef.current}
             viewabilityConfig={viewConfigRef.current}
             style={{ flexGrow: 0 }}
             renderItem={({ item }) => (
               <View style={[styles.slide, { width }]}>
                 <Image
-                  source={item.image}
+                  source={{ uri: item }}
                   style={styles.image}
-                  resizeMode="cover"
+                  resizeMode="contain"
                 />
               </View>
             )}
           />
+
           <View style={styles.dotsContainer}>
-            {slides.map((_, i) => (
+            {bannerList?.map((_, i) => (
               <View
                 key={i.toString()}
                 style={[styles.dot, currentIndex === i && styles.activeDot]}
@@ -269,7 +374,7 @@ const HomePage = () => {
             ))}
           </View>
         </View>
-        <View style={[styles.menuContainer, { marginTop: 16 }]}>
+        <View style={[styles.menuContainer, { marginTop: 0 }]}>
           <View style={styles.menuTitleTextContainer}>
             <Text style={styles.menuTitleText}>
               {userData?.role?.id === 4 ? 'Belajar CPNS' : 'Belajar UTBK SNBT'}
@@ -372,6 +477,53 @@ const HomePage = () => {
           </View>
         ) : null}
       </View>
+      <Modal visible={showPopup} transparent={true} animationType="fade">
+        <View style={styles.popupContainer}>
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => setShowPopup(false)}
+          >
+            <Ionicons name="close" size={28} color="#fff" />
+          </TouchableOpacity>
+
+          <FlatList
+            data={popupsData}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(item, index) => index.toString()}
+            onMomentumScrollEnd={event => {
+              const index = Math.round(
+                event.nativeEvent.contentOffset.x /
+                  event.nativeEvent.layoutMeasurement.width,
+              );
+              setPopupIndex(index);
+            }}
+            renderItem={({ item }) => (
+              <View style={styles.popupSlide}>
+                <Image
+                  source={{ uri: item }}
+                  style={styles.popupImage}
+                  resizeMode="contain"
+                />
+              </View>
+            )}
+          />
+
+          {/* dots */}
+          <View style={styles.popupDots}>
+            {popupsData.map((_, i) => (
+              <View
+                key={i}
+                style={[
+                  styles.popupDot,
+                  popupIndex === i && styles.popupActiveDot,
+                ]}
+              />
+            ))}
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -444,14 +596,19 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   carouselContainer: {
+    width: '100%',
     alignItems: 'center',
+    marginBottom: 8,
   },
   slide: {
-    borderRadius: 6,
+    borderRadius: 10,
     overflow: 'hidden',
   },
   image: {
-    width: 375,
+    width: '100%',
+    height: undefined,
+    aspectRatio: 16 / 7,
+    borderRadius: 10,
   },
   dotsContainer: { flexDirection: 'row', marginBottom: 24, marginTop: 12 },
   dot: {
@@ -596,6 +753,50 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
     color: Colors.product900,
+  },
+
+  popupContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  popupSlide: {
+    width: Dimensions.get('window').width,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  popupImage: {
+    width: '70%',
+    height: '70%',
+    borderRadius: 12,
+  },
+
+  closeButton: {
+    position: 'absolute',
+    top: 60,
+    right: 20,
+    zIndex: 10,
+  },
+
+  popupDots: {
+    position: 'absolute',
+    bottom: 60,
+    flexDirection: 'row',
+  },
+
+  popupDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 5,
+    backgroundColor: '#666',
+    marginHorizontal: 5,
+  },
+
+  popupActiveDot: {
+    backgroundColor: '#fff',
   },
 });
 

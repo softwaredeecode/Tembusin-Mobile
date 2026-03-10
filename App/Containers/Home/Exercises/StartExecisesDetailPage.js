@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   TextInput,
   Switch,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -17,6 +19,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 // components
 import MainHeader from '../../../Components/MainHeader';
 import BottomModal from '../../../Components/BottomModal';
+import { BASE_URL } from '../../../Api/GlobalUrl';
 
 //theme
 import { Colors } from '../../../Theme/Colors';
@@ -55,6 +58,8 @@ const StartExecisesDetailPage = props => {
   const currentQuestionId = currentQuestion?.id;
   const isRagu = raguMap[currentQuestionId] || false;
   const reportText = reportMap[currentQuestionId] || '';
+  const [reportedMap, setReportedMap] = useState({});
+  const isReported = !!reportedMap[currentQuestionId];
 
   const handleSubmitAnswer = async () => {
     const token = await AsyncStorage.getItem('auth_token');
@@ -121,6 +126,51 @@ const StartExecisesDetailPage = props => {
     console.log(response, 'response');
     if (response.data) {
       setCurrentIndex(prev => prev - 1);
+    }
+  };
+
+  const handleReport = async () => {
+    const url = `${BASE_URL}/student/questions/${exerciseDetailContent?.data?.id}/reports`;
+
+    try {
+      const token = await AsyncStorage.getItem('auth_token');
+
+      console.log('📡 [POST REPORT] Request URL:', url);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          description: reportText,
+        }),
+      });
+
+      console.log(
+        '📥 [POST REPORT] HTTP Status:',
+        response.status,
+        response.statusText,
+      );
+
+      const json = await response.json();
+      console.log('📦 [POST REPORT] Response:', json);
+
+      if (response.ok) {
+        setReportedMap(prev => ({
+          ...prev,
+          [currentQuestionId]: true,
+        }));
+        console.log('✅ Report berhasil dikirim');
+      } else {
+        throw json;
+      }
+    } catch (error) {
+      console.log('❌ [POST REPORT] Error:', error);
+    } finally {
+      setShowReportModal(false);
     }
   };
 
@@ -242,7 +292,12 @@ const StartExecisesDetailPage = props => {
                 </Text>
               </View>
 
-              <Text style={styles.choiceText}>{item.content}</Text>
+              <Text style={[styles.choiceText, { flex: 1 }]}>
+                {item.content}
+              </Text>
+              <Text style={[styles.choiceText, { fontSize: 11 }]}>
+                {isSelected ? 'Setuju' : 'Tidak Setuju'}
+              </Text>
             </TouchableOpacity>
           );
         })}
@@ -511,37 +566,47 @@ const StartExecisesDetailPage = props => {
         title={'Report'}
         withHeader={true}
       >
-        <View style={reportStyles.container}>
-          <View style={reportStyles.textInputContainer}>
-            <TextInput
-              value={reportText}
-              multiline
-              maxLength={150}
-              placeholder="Tulis report..."
-              style={reportStyles.essayInput}
-              onChangeText={text => {
-                setReportMap(prev => ({
-                  ...prev,
-                  [currentQuestionId]: text,
-                }));
-              }}
-              textAlignVertical="top"
-            />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <View style={reportStyles.container}>
+            <View style={reportStyles.textInputContainer}>
+              <TextInput
+                value={reportText}
+                multiline
+                maxLength={150}
+                placeholder="Tulis report..."
+                style={reportStyles.essayInput}
+                editable={!isReported}
+                onChangeText={text => {
+                  setReportMap(prev => ({
+                    ...prev,
+                    [currentQuestionId]: text,
+                  }));
+                }}
+                textAlignVertical="top"
+              />
+            </View>
+
+            <Text style={{ alignSelf: 'flex-end', marginTop: 4 }}>
+              {reportText.length}/150
+            </Text>
           </View>
-          <Text style={{ alignSelf: 'flex-end', marginTop: 4 }}>
-            {reportText.length}/150
-          </Text>
-        </View>
-        <View style={reportStyles.buttonContainer}>
-          <TouchableOpacity
-            onPress={() => {
-              setShowReportModal(false);
-            }}
-            style={reportStyles.doneButtonContainer}
-          >
-            <Text style={reportStyles.doneButtonText}>Selesai</Text>
-          </TouchableOpacity>
-        </View>
+
+          <View style={reportStyles.buttonContainer}>
+            <TouchableOpacity
+              disabled={isReported}
+              onPress={handleReport}
+              style={
+                isReported
+                  ? reportStyles.disableDoneButtonContainer
+                  : reportStyles.doneButtonContainer
+              }
+            >
+              <Text style={reportStyles.doneButtonText}>Selesai</Text>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
       </BottomModal>
     </View>
   );
@@ -877,6 +942,14 @@ const reportStyles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
+  disableDoneButtonContainer: {
+    marginTop: 12,
+    padding: 10,
+    backgroundColor: Colors.neutral400,
+    borderRadius: 8,
+    alignItems: 'center',
+    flex: 1,
+  },
   doneButtonText: {
     fontFamily: Fonts.Medium,
     fontSize: 14,
@@ -896,6 +969,6 @@ const reportStyles = StyleSheet.create({
     fontFamily: Fonts.Regular,
     fontSize: 14,
     lineHeight: 20,
-    color: Colors.neutral400,
+    color: Colors.neutral900,
   },
 });
