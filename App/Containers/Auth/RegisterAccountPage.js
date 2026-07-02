@@ -45,7 +45,7 @@ const RegisterAccountPage = props => {
     };
     const result = await dispatch(ActionStudent.PostRegister(payload));
     console.log(result, 'RESPONSE')
-    if (result.status === 200) {
+    if (result.status === 201) {
       const data = {
         selectedAccountType: selectedAccountType,
         fullname: fullname,
@@ -95,12 +95,6 @@ const RegisterAccountPage = props => {
               setValue={setPassword}
               value={password}
             />
-          </View>
-          <View style={styles.forgotPasswordRow}>
-            <View style={{ flex: 1 }} />
-            <TouchableOpacity>
-              <Text style={styles.forgotPasswordText}>Lupa Password?</Text>
-            </TouchableOpacity>
           </View>
         </View>
         <TouchableOpacity

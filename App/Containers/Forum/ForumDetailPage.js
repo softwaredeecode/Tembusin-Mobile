@@ -15,6 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import MainHeader from '../../Components/MainHeader';
 import ForumDetailCardComponent from '../../Components/ForumDetailCardComponent';
+import ForumCommentCardComponent from '../../Components/ForumCommentCardComponent';
 
 import { Colors } from '../../Theme/Colors';
 import { Fonts } from '../../Theme/Fonts';
@@ -124,6 +125,7 @@ const ForumDetailPage = props => {
             <ForumDetailCardComponent
               forumDetailData={forumDetailData}
               showCommentButton
+              props={props}
             />
             <View style={styles.commentsContainer}>
               <Text style={styles.commentsTitleText}>
@@ -149,7 +151,7 @@ const ForumDetailPage = props => {
                 : styles.itemContainer
             }
           >
-            <ForumDetailCardComponent forumDetailData={item} />
+            <ForumCommentCardComponent forumDetailData={item} />
           </View>
         )}
       />

@@ -110,7 +110,7 @@ const LoginPage = () => {
           </View>
           <View style={styles.forgotPasswordRow}>
             <View style={{ flex: 1 }} />
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('ForgotPasswordEmailPage')}>
               <Text style={styles.forgotPasswordText}>Lupa Password?</Text>
             </TouchableOpacity>
           </View>

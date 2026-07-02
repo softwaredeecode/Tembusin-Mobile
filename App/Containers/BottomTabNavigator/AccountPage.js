@@ -129,11 +129,14 @@ const AccountPage = () => {
           <Separator />
           <MenuItem icon="download-outline" label="Unduhan saya" />
           <Separator />
-          <MenuItem icon="people-outline" label="Kode referral" />
-          <Separator />
+          {/* <MenuItem icon="people-outline" label="Kode referral" />
+          <Separator /> */}
           <MenuItem
             icon="checkmark-done-circle-outline"
             label="Evaluasi hasil try out"
+            onPress={() => {
+              navigation.navigate('EvaluationTryOutPage');
+            }}
           />
           <Separator />
 

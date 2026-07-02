@@ -10,6 +10,7 @@ import RegisterCPNSPage from '../Containers/Auth/RegisterCPNSPage';
 import RegisterPTNPage from '../Containers/Auth/RegisterPTNPage';
 import RegisterCompleteDataPage from '../Containers/Auth/RegisterCompleteDataPage';
 import RegisterOTPPage from '../Containers/Auth/RegisterOTPPage';
+import ForgotPasswordEmailPage from '../Containers/Auth/ForgotPasswordEmailPage';
 
 const Stack = createStackNavigator();
 const width = Dimensions.get('screen').width;
@@ -70,6 +71,11 @@ const AuthNavigator = () => {
       <Stack.Screen
         name="RegisterOTPPage"
         component={RegisterOTPPage}
+        options={horizontalAnimation}
+      />
+      <Stack.Screen
+        name="ForgotPasswordEmailPage"
+        component={ForgotPasswordEmailPage}
         options={horizontalAnimation}
       />
     </Stack.Navigator>

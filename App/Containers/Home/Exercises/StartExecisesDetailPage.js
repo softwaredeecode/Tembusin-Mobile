@@ -9,12 +9,15 @@ import {
   Switch,
   KeyboardAvoidingView,
   Platform,
+  useWindowDimensions,
+  Image,
 } from 'react-native';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import RenderHTML from 'react-native-render-html';
 
 // components
 import MainHeader from '../../../Components/MainHeader';
@@ -32,6 +35,7 @@ import { ActionStudent } from '../../../Redux/Actions';
 const StartExecisesDetailPage = props => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  const { width } = useWindowDimensions();
   const exercisesSetDetailData = props?.route?.params?.exercisesSetDetailData;
   const startNewAttemptData = props?.route?.params?.startNewAttemptData;
   const { exerciseDetailContent, exercisesSpinner } = useSelector(
@@ -352,9 +356,21 @@ const StartExecisesDetailPage = props => {
             </TouchableOpacity>
           </View>
           <View style={styles.contentChildContainer}>
-            <Text style={styles.exercisesContentText}>
-              {exerciseDetailContent.data.content}
-            </Text>
+            {exerciseDetailContent?.data?.image_url ? (
+              <Image
+                source={{ uri: exerciseDetailContent.data.image_url }}
+                style={{
+                  width: '100%',
+                  resizeMode: 'contain',
+                  aspectRatio: 1.5,
+                  marginBottom: 12,
+                }}
+              />
+            ) : null}
+            <RenderHTML
+              contentWidth={width}
+              source={{ html: exerciseDetailContent.data.content }}
+            />
           </View>
 
           {exerciseDetailContent?.data?.question_type?.id === 1 && (

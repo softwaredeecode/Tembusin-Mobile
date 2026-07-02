@@ -19,28 +19,18 @@ import { BASE_URL } from '../Api/GlobalUrl';
 //helper
 import { getInitial, formatDate } from '../Utils/Helper';
 
-const ForumDetailCardComponent = ({
-  forumDetailData,
-  showCommentButton = false,
-  props,
-  hideLike = false,
-}) => {
+const ForumCommentCardComponent = ({ forumDetailData }) => {
+  console.log('forumDetailData', forumDetailData);
   const navigation = useNavigation();
+  const [liked, setLiked] = useState(forumDetailData.liked);
+  const [likeCount, setLikeCount] = useState(forumDetailData.like_count);
 
-  console.log(props);
-  const [isLiked, setIsLiked] = useState(
-    props?.route?.params?.liked ?? forumDetailData.liked,
-  );
-  const [likes, setLikes] = useState(
-    props?.route?.params?.likeCount ?? forumDetailData.like_count,
-  );
-
-  const likedPost = async () => {
-    const url = `${BASE_URL}/posts/${forumDetailData.id}/like`;
+  const likedComment = async () => {
+    const url = `${BASE_URL}/comments/${forumDetailData.id}/like`;
     const token = await AsyncStorage.getItem('auth_token');
 
     try {
-      console.log('📡 [LIKED POST] Request URL:', url);
+      console.log('📡 [LIKED COMMENT] Request URL:', url);
 
       const response = await fetch(url, {
         method: 'POST',
@@ -52,22 +42,22 @@ const ForumDetailCardComponent = ({
 
       const json = await response.json();
 
-      console.log('📦 [LIKED POST] Response:', json);
+      console.log('📦 [LIKED COMMENT] Response:', json);
 
       if (response.ok) {
       }
     } catch (error) {
-      console.log('❌ [LIKED POST] Error:', error);
+      console.log('❌ [LIKED COMMENT] Error:', error);
       throw error;
     }
   };
 
-  const unlikedPost = async () => {
-    const url = `${BASE_URL}/posts/${forumDetailData.id}/like`;
+  const unlikedComment = async () => {
+    const url = `${BASE_URL}/comments/${forumDetailData.id}/like`;
     const token = await AsyncStorage.getItem('auth_token');
 
     try {
-      console.log('📡 [UNLIKE POST] Request URL:', url);
+      console.log('📡 [UNLIKE COMMENT] Request URL:', url);
 
       const response = await fetch(url, {
         method: 'DELETE',
@@ -79,32 +69,26 @@ const ForumDetailCardComponent = ({
 
       const json = await response.json();
 
-      console.log('📦 [UNLIKE POST] Response:', json);
+      console.log('📦 [UNLIKE COMMENT] Response:', json);
 
       if (response.ok) {
         // update UI jika perlu
       }
     } catch (error) {
-      console.log('❌ [UNLIKE POST] Error:', error);
+      console.log('❌ [UNLIKE COMMENT] Error:', error);
       throw error;
     }
   };
 
   const handleLike = async () => {
-    if (isLiked) {
-      const newCount = likes - 1;
-      setIsLiked(false);
-      setLikes(newCount);
-
-      props?.route?.params?.onLikeUpdate?.(false, newCount);
-      await unlikedPost();
+    if (liked) {
+      setLiked(false);
+      setLikeCount(prev => prev - 1);
+      await unlikedComment();
     } else {
-      const newCount = likes + 1;
-      setIsLiked(true);
-      setLikes(newCount);
-
-      props?.route?.params?.onLikeUpdate?.(true, newCount);
-      await likedPost();
+      setLiked(true);
+      setLikeCount(prev => prev + 1);
+      await likedComment();
     }
   };
 
@@ -145,51 +129,27 @@ const ForumDetailCardComponent = ({
         <Text style={styles.messageText}>{forumDetailData?.content}</Text>
       </View>
       <View style={styles.postStatusContainer}>
-        {!hideLike ? (
-          <>
-            <TouchableOpacity onPress={handleLike} style={[styles.row]}>
-              <Ionicons
-                name={isLiked ? 'heart' : 'heart-outline'}
-                size={16}
-                color={isLiked ? Colors.danger500 : Colors.neutral500}
-              />
+        <TouchableOpacity onPress={handleLike} style={[styles.row]}>
+          <Ionicons
+            name={liked ? 'heart' : 'heart-outline'}
+            size={16}
+            color={liked ? Colors.danger500 : Colors.neutral500}
+          />
 
-              <Text style={styles.statusCountText}>{likes}</Text>
-            </TouchableOpacity>
-            <View style={[styles.row, { marginLeft: 20, flex: 1 }]}>
-              <Ionicons
-                name={'eye-outline'}
-                size={16}
-                color={Colors.neutral500}
-              />
-              <Text style={styles.statusCountText}>
-                {forumDetailData?.view_count}
-              </Text>
-            </View>
-          </>
-        ) : null}
-
-        {showCommentButton && (
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate('AddCommentPage', { forumDetailData })
-            }
-            style={[styles.row, { gap: 6 }]}
-          >
-            <Ionicons
-              name={'chatbubble-ellipses-outline'}
-              size={16}
-              color={Colors.product900}
-            />
-            <Text style={styles.commentText}>Komentar</Text>
-          </TouchableOpacity>
-        )}
+          <Text style={styles.statusCountText}>{likeCount}</Text>
+        </TouchableOpacity>
+        <View style={[styles.row, { marginLeft: 20, flex: 1 }]}>
+          <Ionicons name={'eye-outline'} size={16} color={Colors.neutral500} />
+          <Text style={styles.statusCountText}>
+            {forumDetailData?.view_count}
+          </Text>
+        </View>
       </View>
     </View>
   );
 };
 
-export default ForumDetailCardComponent;
+export default ForumCommentCardComponent;
 
 const styles = StyleSheet.create({
   postContainer: {

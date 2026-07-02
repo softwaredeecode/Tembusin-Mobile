@@ -1,17 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 //theme
 import { Colors } from '../Theme/Colors';
 import { Fonts } from '../Theme/Fonts';
+import { BASE_URL } from '../Api/GlobalUrl';
 
 //helper
 import { getInitial, formatDate } from '../Utils/Helper';
@@ -20,6 +17,8 @@ const ForumCardComponent = React.memo(({ item, navigation }) => {
   const [showMoreButton, setShowMoreButton] = useState(false);
   const [textShown, setTextShown] = useState(false);
   const [numLines, setNumLines] = useState(undefined);
+  const [liked, setLiked] = useState(item.liked);
+  const [likeCount, setLikeCount] = useState(item.like_count);
 
   const toggleTextShown = () => {
     setTextShown(!textShown);
@@ -39,12 +38,89 @@ const ForumCardComponent = React.memo(({ item, navigation }) => {
     [textShown],
   );
 
+  const likedPost = async () => {
+    const url = `${BASE_URL}/posts/${item.id}/like`;
+    const token = await AsyncStorage.getItem('auth_token');
+
+    try {
+      console.log('📡 [LIKED POST] Request URL:', url);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const json = await response.json();
+
+      console.log('📦 [LIKED POST] Response:', json);
+
+      if (response.ok) {
+      }
+    } catch (error) {
+      console.log('❌ [LIKED POST] Error:', error);
+      throw error;
+    }
+  };
+
+  const unlikedPost = async () => {
+    const url = `${BASE_URL}/posts/${item.id}/like`;
+    const token = await AsyncStorage.getItem('auth_token');
+
+    try {
+      console.log('📡 [UNLIKE POST] Request URL:', url);
+
+      const response = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const json = await response.json();
+
+      console.log('📦 [UNLIKE POST] Response:', json);
+
+      if (response.ok) {
+        // update UI jika perlu
+      }
+    } catch (error) {
+      console.log('❌ [UNLIKE POST] Error:', error);
+      throw error;
+    }
+  };
+
+  const handleLikeClicked = async () => {
+    if (liked) {
+      setLiked(false);
+      setLikeCount(prev => prev - 1);
+      await unlikedPost();
+    } else {
+      setLiked(true);
+      setLikeCount(prev => prev + 1);
+      await likedPost();
+    }
+  };
+
   return (
-    <TouchableOpacity
-      onPress={() => navigation.navigate('ForumDetailPage', { item })}
-      style={styles.cardContainer}
-    >
-      <View style={styles.postContainer}>
+    <View style={styles.cardContainer}>
+      <TouchableOpacity
+        onPress={() => {
+          navigation.navigate('ForumDetailPage', {
+            item,
+            liked,
+            likeCount,
+            onLikeUpdate: (liked, likeCount) => {
+              setLiked(liked);
+              setLikeCount(likeCount);
+            },
+          });
+        }}
+        style={styles.postContainer}
+      >
         <View style={styles.postHeader}>
           <View style={styles.profileInitialContainer}>
             <Text style={styles.initialText}>
@@ -95,7 +171,7 @@ const ForumCardComponent = React.memo(({ item, navigation }) => {
             </TouchableOpacity>
           )}
         </View>
-      </View>
+      </TouchableOpacity>
       <View style={styles.postStatusContainer}>
         <View style={styles.row}>
           <Ionicons
@@ -105,21 +181,25 @@ const ForumCardComponent = React.memo(({ item, navigation }) => {
           />
           <Text style={styles.statusCountText}>{item?.comment_count}</Text>
         </View>
-        <View style={[styles.row, { marginLeft: 20 }]}>
+        <TouchableOpacity
+          onPress={handleLikeClicked}
+          style={[styles.row, { marginLeft: 20 }]}
+        >
           <Ionicons
-            name={'heart-outline'}
+            name={liked ? 'heart' : 'heart-outline'}
             size={16}
-            color={Colors.neutral500}
+            color={liked ? Colors.danger500 : Colors.neutral500}
           />
-          <Text style={styles.statusCountText}>{item?.like_count}</Text>
-        </View>
+
+          <Text style={styles.statusCountText}>{likeCount}</Text>
+        </TouchableOpacity>
         <View style={[styles.row, { marginLeft: 20, flex: 1 }]}>
           <Ionicons name={'eye-outline'} size={16} color={Colors.neutral500} />
           <Text style={styles.statusCountText}>{item?.view_count}</Text>
         </View>
         <Feather name={'upload'} size={16} color={Colors.neutral500} />
       </View>
-    </TouchableOpacity>
+    </View>
   );
 });
 

@@ -118,7 +118,7 @@ const AddCommentPage = props => {
       >
         <MainHeader title={'Tulis komentar'} />
         <ScrollView style={styles.scrollContainer}>
-          <ForumDetailCardComponent forumDetailData={forumDetailData} />
+          <ForumDetailCardComponent forumDetailData={forumDetailData} hideLike />
           <View style={styles.commentsContainer}>
             <Text style={styles.commentsTitleText}>
               Komentar ke{' '}

@@ -9,6 +9,8 @@ import {
   Switch,
   KeyboardAvoidingView,
   Platform,
+  Image,
+  useWindowDimensions,
 } from 'react-native';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -16,6 +18,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import RenderHTML from 'react-native-render-html';
 
 // components
 import MainHeader from '../../../Components/MainHeader';
@@ -35,6 +38,7 @@ import { useTryoutCountdown, formatTime } from '../../../Utils/Helper';
 const StartDetailTryOutPage = props => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  const { width } = useWindowDimensions();
   const { tryoutQuestionDetail, tryOutSpinner } = useSelector(
     state => state.tryout,
   );
@@ -271,39 +275,51 @@ const StartDetailTryOutPage = props => {
           contentContainerStyle={styles.contentContainer}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.contentChildContainer}>
-            <View style={styles.reportRaguContainer}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Switch
-                  value={isRagu}
-                  onValueChange={val => {
-                    setRaguMap(prev => ({
-                      ...prev,
-                      [currentQuestionId]: val,
-                    }));
-                  }}
-                  trackColor={{ false: '#ccc', true: Colors.product900 }}
-                  style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
-                />
-                <Text style={styles.raguText}>Ragu ragu</Text>
-              </View>
-              <TouchableOpacity
-                style={{ flexDirection: 'row', alignItems: 'center' }}
-                onPress={() => {
-                  setShowReportModal(true);
+          <View style={styles.reportRaguContainer}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Switch
+                value={isRagu}
+                onValueChange={val => {
+                  setRaguMap(prev => ({
+                    ...prev,
+                    [currentQuestionId]: val,
+                  }));
                 }}
-              >
-                <Ionicons
-                  name="flag-outline"
-                  color={Colors.neutral500}
-                  size={16}
-                />
-                <Text style={styles.raguText}>Report</Text>
-              </TouchableOpacity>
+                trackColor={{ false: '#ccc', true: Colors.product900 }}
+                style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
+              />
+              <Text style={styles.raguText}>Ragu ragu</Text>
             </View>
-            <Text style={styles.exercisesContentText}>
-              {tryoutQuestionDetail.data.content}
-            </Text>
+            <TouchableOpacity
+              style={{ flexDirection: 'row', alignItems: 'center' }}
+              onPress={() => {
+                setShowReportModal(true);
+              }}
+            >
+              <Ionicons
+                name="flag-outline"
+                color={Colors.neutral500}
+                size={16}
+              />
+              <Text style={styles.raguText}>Report</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.contentChildContainer}>
+            {tryoutQuestionDetail?.data?.image_url ? (
+              <Image
+                source={{ uri: tryoutQuestionDetail.data.image_url }}
+                style={{
+                  width: '100%',
+                  resizeMode: 'contain',
+                  aspectRatio: 1.5,
+                  marginBottom: 12,
+                }}
+              />
+            ) : null}
+            <RenderHTML
+              contentWidth={width}
+              source={{ html: tryoutQuestionDetail.data.content }}
+            />
           </View>
           {tryoutQuestionDetail?.data?.question_type?.id === 1 && (
             <View>
