@@ -93,15 +93,20 @@ const HomePage = () => {
   const [popupIndex, setPopupIndex] = useState(0);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      let nextIndex = currentIndex + 1;
-      if (nextIndex >= slides.length) {
-        nextIndex = 0;
-      }
-      flatListRef.current.scrollToIndex({ index: nextIndex, animated: true });
-    }, 3000);
+    if (bannerList.length > 0) {
+      const interval = setInterval(() => {
+        let nextIndex = currentIndex + 1;
+        if (nextIndex >= slides.length) {
+          nextIndex = 0;
+        }
+        flatListRef?.current?.scrollToIndex({
+          index: nextIndex,
+          animated: true,
+        });
+      }, 3000);
 
-    return () => clearInterval(interval);
+      return () => clearInterval(interval);
+    }
   }, [currentIndex]);
 
   useEffect(() => {

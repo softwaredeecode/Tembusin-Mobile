@@ -11,6 +11,8 @@ import RegisterPTNPage from '../Containers/Auth/RegisterPTNPage';
 import RegisterCompleteDataPage from '../Containers/Auth/RegisterCompleteDataPage';
 import RegisterOTPPage from '../Containers/Auth/RegisterOTPPage';
 import ForgotPasswordEmailPage from '../Containers/Auth/ForgotPasswordEmailPage';
+import ForgotPasswordOTPPage from '../Containers/Auth/ForgotPasswordOTPPage';
+import ResetPasswordPage from '../Containers/Auth/ResetPasswordPage';
 
 const Stack = createStackNavigator();
 const width = Dimensions.get('screen').width;
@@ -76,6 +78,16 @@ const AuthNavigator = () => {
       <Stack.Screen
         name="ForgotPasswordEmailPage"
         component={ForgotPasswordEmailPage}
+        options={horizontalAnimation}
+      />
+      <Stack.Screen
+        name="ForgotPasswordOTPPage"
+        component={ForgotPasswordOTPPage}
+        options={horizontalAnimation}
+      />
+      <Stack.Screen
+        name="ResetPasswordPage"
+        component={ResetPasswordPage}
         options={horizontalAnimation}
       />
     </Stack.Navigator>

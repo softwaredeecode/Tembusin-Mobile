@@ -5,6 +5,9 @@ export const AUTH = {
   verifyOtpRegister: '/register/verify',
   resendOtpRegister: '/register/resend-otp',
   login: '/login',
+  forgotPassword: '/forgot-password',
+  verifyOtpForgotPassword: '/forgot-password/verify',
+  resetPassword: '/forgot-password/reset',
 };
 
 export const FORUM = {

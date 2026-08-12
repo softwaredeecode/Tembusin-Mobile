@@ -45,7 +45,7 @@ const RegisterAccountPage = props => {
     };
     const result = await dispatch(ActionStudent.PostRegister(payload));
     console.log(result, 'RESPONSE')
-    if (result.status === 201) {
+    if (result.status === 200 || result.status === 201) {
       const data = {
         selectedAccountType: selectedAccountType,
         fullname: fullname,
